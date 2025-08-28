@@ -1,27 +1,42 @@
+import os
 from PyQt5.QtWidgets import QWidget, QLabel, QVBoxLayout
 from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QFontDatabase
 
 class StatusPanel(QWidget):
     STATUS_COLORS = {
-        "LANDED": "green",
-        "CRASHED": "red",
-        "WARNING": "orange",
-        "DESCENDING": "blue",
-        "IDLE": "gray"
+        "LANDED": "#336600",
+        "CRASHED": "#990000",
+        "WARNING": "#994C00",
+        "DESCENDING": "#0000CC",
+        "IDLE": "#A0A0A0"
     }
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setFixedSize(550, 70)
+        self.setFixedSize(450, 60)
 
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
 
+        # Font fallback if SC it doesn't work 
+        font_path = os.path.join(os.path.dirname(__file__), "..", "fonts", "Silkscreen-Regular.ttf")
+        font_path = os.path.abspath(font_path)
+        font_id = QFontDatabase.addApplicationFont(font_path)
+
+        if font_id == -1:
+            print(f"[StatusPanel] Failed to load Silkscreen font at {font_path}, falling back to Courier.")
+            font_family = "Courier"
+        else:
+            families = QFontDatabase.applicationFontFamilies(font_id)
+            font_family = families[0] if families else "Courier"
+            print(f"[StatusPanel] Loaded Silkscreen font: {font_family}")
+
+        # Retro label
         self.label = QLabel("IDLE")
         self.label.setAlignment(Qt.AlignCenter)
-        self.label.setFont(QFont("Courier", 28, QFont.Bold))  # retro style
-        self.label.setStyleSheet("color: black;")  # text always black
+        self.label.setFont(QFont(font_family, 20, QFont.Bold))
+        self.label.setStyleSheet("color: black;")
         layout.addWidget(self.label)
 
         self.setLayout(layout)
@@ -44,7 +59,6 @@ class StatusPanel(QWidget):
     def set_status(self, status):
         """Change the status and update UI"""
         if status == "WARNING":
-            # Save previous state
             self.previous_status = self.current_status
             self._start_warning_mode()
         else:
@@ -60,8 +74,8 @@ class StatusPanel(QWidget):
         self.current_status = "WARNING"
         self._update_ui("WARNING")
         self.flash_state = False
-        self.flash_timer.start(500)  # flash every 500 ms
-        self.reset_timer.start(5000)  # auto reset after 5 seconds
+        self.flash_timer.start(500)   # flash every 500 ms
+        self.reset_timer.start(5000)  # reset after 5 sec
 
     def _flash_background(self):
         """Toggle background flashing effect"""
