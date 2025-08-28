@@ -1,30 +1,37 @@
-
-# This class calculates forces and updates the lander's position and velocity based on physics.
+﻿
+# This class calculates linear and angular forces and updates the lander's state in 3D with aerodynamic drag.
 
 import math
-from Lander import Lander
+import numpy as np
 
 class PhysicsEngine:
     def __init__(self, lander):
         self.lander = lander
 
-    def update(self, thrust_angle, thrust_force, dt):
-        g = self.lander.planet.gravity
+    
+    def update(self, thrust_vector, thrust_force, dt, wind_vector=np.array([0.0, 0.0, 0.0])):
+        altitude = self.lander.position[1]
+        g = self.lander.planet.gravity_at_height(altitude)  # Dynamic gravity
         rho = self.lander.planet.air_density
+        mass = self.lander.mass
 
-        # Forces
-        thrust_x = thrust_force * math.cos(thrust_angle)
-        thrust_y = thrust_force * math.sin(thrust_angle)
-        weight = self.lander.mass * g
-        drag_x = -0.5 * rho * self.lander.velocity[0] ** 2 * self.lander.drag_coefficient
-        drag_y = -0.5 * rho * self.lander.velocity[1] ** 2 * self.lander.drag_coefficient
+        # === LINEAR FORCES ===
+        weight = np.array([0.0, -mass * g, 0.0])
+        thrust = thrust_vector * thrust_force
 
-        # Accelerations
-        ax = (thrust_x + drag_x) / self.lander.mass
-        ay = (thrust_y + drag_y - weight) / self.lander.mass
+        relative_velocity = self.lander.velocity - wind_vector
+        drag = -0.5 * rho * self.lander.drag_coefficient * np.square(relative_velocity) * np.sign(relative_velocity)
 
-        # Update state
-        self.lander.velocity[0] += ax * dt
-        self.lander.velocity[1] += ay * dt
-        self.lander.position[0] += self.lander.velocity[0] * dt
-        self.lander.position[1] += self.lander.velocity[1] * dt
+        # Total force
+        net_force = thrust + drag + weight
+        acceleration = net_force / mass
+
+        # Update linear motion
+        self.lander.velocity += acceleration * dt
+        self.lander.position += self.lander.velocity * dt
+
+        # === ROTATIONAL FORCES ===
+        torque = np.cross(self.lander.dimensions / 2, drag)  # Simple drag-induced torque
+        angular_acceleration = torque / self.lander.inertia
+        self.lander.angular_velocity += angular_acceleration * dt
+        self.lander.orientation += self.lander.angular_velocity * dt

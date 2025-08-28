@@ -1,8 +1,9 @@
-
+﻿
 # Main entry point for the simulation. Selects planet and starts simulation.
 
 from EnvironmentManager import EnvironmentManager
 from Simulator import Simulator
+from pid_controller import PIDController
 
 if __name__ == "__main__":
     manager = EnvironmentManager()
@@ -18,7 +19,9 @@ if __name__ == "__main__":
             print("Pick one from the available planets:", available_planets)
 
     planet = manager.get_planet(planet_name)
-    simulator = Simulator(planet)
+    
+    # Setpoint: target descent rate at touchdown
+    pid = PIDController(kp=300, ki=0, kd=120, setpoint=-2.0)
 
-    # Run simulation with example thrust parameters
-    simulator.run(thrust_angle=1.57, thrust_force=1500, duration=60, dt=0.1)
+    simulator = Simulator(planet, controller=pid)
+    simulator.run(duration=60, dt=0.1)
