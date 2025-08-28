@@ -1,9 +1,10 @@
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QSpacerItem, QSizePolicy
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
 from PyQt5.QtCore import QTimer
 from panels.telemetry_panel_UI import TelemetryPanel
 from panels.warning_panel_UI import WarningPanel
-from panels.visualization_panel_UI import VisualizationPanel
 from panels.status_panel_UI import StatusPanel
+from panels.radar_panel_UI import RadarPanel
+
 
 class Dashboard(QWidget):
     def __init__(self):
@@ -15,7 +16,7 @@ class Dashboard(QWidget):
         self.status_panel = StatusPanel()
         self.telemetry_panel = TelemetryPanel()
         self.warning_panel = WarningPanel()
-        self.visualization_panel = VisualizationPanel()
+        self.radar_panel = RadarPanel(self)
 
         # ---- Layouts ----
         # Top bar (status panel centered)
@@ -24,14 +25,15 @@ class Dashboard(QWidget):
         top_layout.addWidget(self.status_panel)
         top_layout.addStretch(1)
 
-        # Bottom (telemetry + warnings on left, visualization on right)
+        # Left column (telemetry + warnings stacked)
         left_layout = QVBoxLayout()
         left_layout.addWidget(self.telemetry_panel)
         left_layout.addWidget(self.warning_panel)
 
+        # Bottom layout (radar panel on left, telemetry+warnings on right)
         bottom_layout = QHBoxLayout()
+        bottom_layout.addWidget(self.radar_panel, 3)
         bottom_layout.addLayout(left_layout, 2)
-        bottom_layout.addWidget(self.visualization_panel, 3)
 
         # Main vertical layout
         main_layout = QVBoxLayout()
@@ -58,6 +60,7 @@ class Dashboard(QWidget):
         # Update panels
         self.telemetry_panel.update_telemetry(self.time, altitude, velocity, attitude, status)
         self.status_panel.set_status(status)
+        self.radar_panel.update_attitude(yaw=self.time * 10)
 
         if altitude <= 0:
             self.warning_panel.set_status("Touchdown detected!")
