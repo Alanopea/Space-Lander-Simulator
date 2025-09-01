@@ -1,7 +1,8 @@
+# dashboard_UI.py
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, Qt
 from panels.telemetry_panel_UI import TelemetryPanel
-from panels.warning_panel_UI import WarningPanel
+from panels.emergency_panel_UI import EmergencyPanel
 from panels.status_panel_UI import StatusPanel
 from panels.radar_panel_UI import RadarPanel
 
@@ -12,10 +13,10 @@ class Dashboard(QWidget):
         self.setWindowTitle("Lunar Lander Simulation Dashboard")
         self.setGeometry(100, 100, 1200, 700)
 
-        # Panels
+        # ---- Panels ----
         self.status_panel = StatusPanel()
         self.telemetry_panel = TelemetryPanel()
-        self.warning_panel = WarningPanel()
+        self.emergency_panel = EmergencyPanel()
         self.radar_panel = RadarPanel(self)
 
         # ---- Layouts ----
@@ -25,15 +26,21 @@ class Dashboard(QWidget):
         top_layout.addWidget(self.status_panel)
         top_layout.addStretch(1)
 
-        # Left column (telemetry + warnings stacked)
+        # Left column (telemetry stacked)
         left_layout = QVBoxLayout()
         left_layout.addWidget(self.telemetry_panel)
-        left_layout.addWidget(self.warning_panel)
 
-        # Bottom layout (radar panel on left, telemetry+warnings on right)
+        # Right dock (emergency panel bottom-right with margins)
+        right_dock = QVBoxLayout()
+        right_dock.addStretch(1)
+        right_dock.addWidget(self.emergency_panel, 0, alignment=Qt.AlignRight)
+        right_dock.setContentsMargins(0, 0, 35, 35)
+
+        # Bottom layout (radar panel on left, telemetry in center, emergency on right)
         bottom_layout = QHBoxLayout()
         bottom_layout.addWidget(self.radar_panel, 3)
         bottom_layout.addLayout(left_layout, 2)
+        bottom_layout.addLayout(right_dock, 0)
 
         # Main vertical layout
         main_layout = QVBoxLayout()
@@ -49,9 +56,9 @@ class Dashboard(QWidget):
         self.timer.start(200)
 
     def update_dashboard(self):
-        # Example fake data
+        """Fake simulation loop with altitude decrease and alerts."""
         self.time += 0.2
-        altitude = max(0, 1000 - 10 * self.time)
+        altitude = max(0, 200 - 10 * self.time)
         velocity = -10
         attitude = (0, 0, 0)
 
@@ -62,5 +69,9 @@ class Dashboard(QWidget):
         self.status_panel.set_status(status)
         self.radar_panel.update_attitude(yaw=self.time * 10)
 
-        if altitude <= 0:
-            self.warning_panel.set_status("Touchdown detected!")
+        # ---- Example Alerts ----
+        if 0 < altitude < 100:  # caution case
+            self.emergency_panel.trigger_caution("Low altitude margin! Prepare for throttle-up.")
+
+        #if altitude <= 0:  # warning case
+            #self.emergency_panel.trigger_warning("Touchdown detected with high descent rate!")

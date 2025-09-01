@@ -15,7 +15,7 @@ class RadarPanel(QWidget):
 
         # Radar-like plot
         self.plot_widget = pg.PlotWidget()
-        self.plot_widget.setBackground((10, 30, 10))  # dark green background
+        self.plot_widget.setBackground((10, 30, 10))
 
         # Grid styling
         self.plot_widget.showGrid(x=True, y=True, alpha=0.2)

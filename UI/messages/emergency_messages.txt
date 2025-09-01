@@ -1,0 +1,6 @@
+[INFO] Lander onboard systems initialized.
+[CAUTION] Fuel level low: 18% remaining.
+[WARNING] Engine chamber temperature above nominal threshold.
+[INFO] Guidance system realigned after minor drift compensation.
+[CAUTION] Telemetry link degraded; packet loss 12%.
+[WARNING] Rapid descent detected; vertical speed exceeds safe profile.
