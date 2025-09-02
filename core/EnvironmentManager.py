@@ -12,7 +12,7 @@ class EnvironmentManager:
         }
 
     def get_planet(self, name):
-        return self.planets.get(name, mars)  # Default to Mars if not found
+        return self.planets.get(name, mars)
 
     def list_planets(self):
         return list(self.planets.keys())

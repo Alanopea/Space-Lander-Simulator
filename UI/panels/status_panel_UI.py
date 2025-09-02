@@ -89,3 +89,8 @@ class StatusPanel(QWidget):
         """Return to previous status after WARNING"""
         self.flash_timer.stop()
         self.set_status(self.previous_status)
+
+    def update_telemetry(self, t, pos, vel, ori):
+        altitude = float(pos[1])
+        status = "LANDED" if altitude <= 0 else "DESCENDING"
+        self.set_status(status)

@@ -3,7 +3,7 @@
 
 from core.EnvironmentManager import EnvironmentManager
 from core.Simulator import Simulator
-from pid_controller import PIDController
+from core.pid_controller import PIDController
 
 if __name__ == "__main__":
     manager = EnvironmentManager()

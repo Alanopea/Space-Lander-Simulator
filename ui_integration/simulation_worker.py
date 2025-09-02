@@ -52,14 +52,6 @@ class SimulationWorker(QObject):
             # sleep to pace simulation (ms)
             QThread.msleep(int(self.dt * 1000))
 
-        # finalize
-        if tel['status'] == 'LANDED':
-            self.status_changed.emit("LANDED")
-        else:
-            self.status_changed.emit("STOPPED")
-        self.finished.emit()
-        self._running = False
-
     @pyqtSlot()
     def stop(self):
         self._running = False

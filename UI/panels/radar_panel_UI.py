@@ -13,29 +13,39 @@ class RadarPanel(QWidget):
         layout = QVBoxLayout()
         self.setLayout(layout)
 
-        # Radar-like plot
         self.plot_widget = pg.PlotWidget()
         self.plot_widget.setBackground((10, 30, 10))
-
-        # Grid styling
         self.plot_widget.showGrid(x=True, y=True, alpha=0.2)
         self.plot_widget.getAxis('left').setPen(pg.mkPen((0, 255, 0), width=2))
         self.plot_widget.getAxis('bottom').setPen(pg.mkPen((0, 255, 0), width=2))
         self.plot_widget.setMouseEnabled(x=False, y=False)
         self.plot_widget.setMenuEnabled(False)
-
-        # Lock radar coordinate system to pixels (centered at 0,0)
-        half_width, half_height = 300, 225   # half of panel size in px
+        half_width, half_height = 300, 225
         self.plot_widget.setXRange(-half_width, half_width)
         self.plot_widget.setYRange(-half_height, half_height)
         self.plot_widget.setAspectLocked(True)
 
-        # Example lander outline (normalized ~100x100 px)
-        self.lander_size = 100
-        half_size = self.lander_size / 2
-        self.base_shape_x = np.array([-half_size, half_size, half_size, -half_size, -half_size])
-        self.base_shape_y = np.array([-half_size, -half_size, half_size, half_size, -half_size])
+        layout.addWidget(self.plot_widget)
 
+        # Default cuboid
+        self.base_shape_x = None
+        self.base_shape_y = None
+        self.lander_outline = None
+
+    def set_lander_dimensions(self, dimensions):
+        """
+        dimensions: (width, height, depth) in meters
+        We'll use width and height for the top-down radar view.
+        """
+        width, height, _ = dimensions
+        # Scale to fit radar panel 1 meter = 25 pixels
+        scale = 25
+        half_w = (width * scale) / 2
+        half_h = (height * scale) / 2
+        self.base_shape_x = np.array([-half_w, half_w, half_w, -half_w, -half_w])
+        self.base_shape_y = np.array([-half_h, -half_h, half_h, half_h, -half_h])
+        if self.lander_outline:
+            self.plot_widget.removeItem(self.lander_outline)
         self.lander_outline = self.plot_widget.plot(
             self.base_shape_x,
             self.base_shape_y,
@@ -43,25 +53,13 @@ class RadarPanel(QWidget):
             name="lander"
         )
 
-        layout.addWidget(self.plot_widget)
-
     def update_attitude(self, roll=0, pitch=0, yaw=0):
-        """
-        Rotate/tilt the lander shape.
-        Angles in degrees.
-        """
-        # Convert to radians
-        roll = np.radians(roll)
-        pitch = np.radians(pitch)
+        if self.base_shape_x is None or self.base_shape_y is None:
+            return
         yaw = np.radians(yaw)
-
-        # For 2D radar, we mainly show yaw (rotation in XY plane),
-        # but we can also skew with pitch/roll if needed.
         rot_matrix = np.array([
             [np.cos(yaw), -np.sin(yaw)],
             [np.sin(yaw),  np.cos(yaw)]
         ])
-
         rotated = rot_matrix @ np.vstack([self.base_shape_x, self.base_shape_y])
         self.lander_outline.setData(rotated[0], rotated[1])
-

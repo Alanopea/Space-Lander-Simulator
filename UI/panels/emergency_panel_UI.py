@@ -110,3 +110,9 @@ class EmergencyPanel(QWidget):
     def clear_alerts(self):
         self.btn_warning.stop_flashing()
         self.btn_caution.stop_flashing()
+
+    def handle_alert(self, level, message):
+        if level == "WARNING":
+            self.trigger_warning(message)
+        elif level == "CAUTION":
+            self.trigger_caution(message)

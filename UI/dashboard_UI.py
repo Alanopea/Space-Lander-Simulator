@@ -5,9 +5,10 @@ from UI.panels.emergency_panel_UI import EmergencyPanel
 from UI.panels.status_panel_UI import StatusPanel
 from UI.panels.radar_panel_UI import RadarPanel
 from core.EnvironmentManager import EnvironmentManager
-from pid_controller import PIDController
+from core.pid_controller import PIDController
 from ui_integration.step_simulator import StepSimulator
 from ui_integration.simulation_worker import SimulationWorker
+from UI.panels.telemetry_panel_UI import TelemetryPanel
 
 import numpy as np
 
@@ -22,6 +23,7 @@ class Dashboard(QWidget):
         self.status_panel = StatusPanel()
         self.emergency_panel = EmergencyPanel()
         self.radar_panel = RadarPanel(self)
+        self.telemetry_panel = TelemetryPanel(self)
 
         # Layouts
         top_layout = QHBoxLayout()
@@ -30,6 +32,7 @@ class Dashboard(QWidget):
         top_layout.addStretch(1)
 
         right_dock = QVBoxLayout()
+        top_layout.addWidget(self.telemetry_panel)
         right_dock.addStretch(1)
         right_dock.addWidget(self.emergency_panel, 0, alignment=Qt.AlignRight)
         right_dock.setContentsMargins(0, 0, 35, 35)
@@ -84,6 +87,8 @@ class Dashboard(QWidget):
         planet = self.env_manager.get_planet(planet_name)
         pid = PIDController(kp=self.kp_spin.value(), ki=self.ki_spin.value(), kd=self.kd_spin.value(), setpoint=-2.0)
         sim = StepSimulator(planet, controller=pid, initial_altitude=1000.0)
+        # Set radar cuboid dimensions from the lander
+        self.radar_panel.set_lander_dimensions(sim.simulator.lander.dimensions)
 
         self.sim_thread = QThread()
         self.sim_worker = SimulationWorker(sim, dt=0.1, duration=120.0)
@@ -109,17 +114,12 @@ class Dashboard(QWidget):
             self.sim_worker.stop()
 
     def on_telemetry(self, t, pos, vel, ori):
-        altitude = float(pos[1])
-        yaw_deg = float(np.degrees(ori[2]))
-        self.radar_panel.update_attitude(yaw=yaw_deg)
-        status = "LANDED" if altitude <= 0 else "DESCENDING"
-        self.status_panel.set_status(status)
+        self.radar_panel.update_attitude(yaw=float(np.degrees(ori[2])))
+        self.status_panel.update_telemetry(t, pos, vel, ori)
+        self.telemetry_panel.update_telemetry(t, pos, vel, ori)  # Update telemetry panel
 
     def on_alert(self, level, message):
-        if level == "WARNING":
-            self.emergency_panel.trigger_warning(message)
-        elif level == "CAUTION":
-            self.emergency_panel.trigger_caution(message)
+        self.emergency_panel.handle_alert(level, message)
 
     def on_sim_finished(self):
         if self.sim_worker:
