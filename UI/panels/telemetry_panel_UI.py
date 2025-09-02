@@ -28,17 +28,3 @@ class TelemetryPanel(QWidget):
 
         self.time_data = []
         self.altitude_data = []
-
-    def update_telemetry(self, time, altitude, velocity, attitude, status=None):
-        """Update labels and plot with new data"""
-        self.altitude_label.setText(f"Altitude: {altitude:.1f} m")
-        self.velocity_label.setText(f"Velocity: {velocity:.1f} m/s")
-        self.attitude_label.setText(f"Attitude: {attitude}")
-
-        if status:
-            self.status_label.setText(f"Status: {status}")
-
-        # update plot
-        self.time_data.append(time)
-        self.altitude_data.append(altitude)
-        self.altitude_curve.setData(self.time_data, self.altitude_data)

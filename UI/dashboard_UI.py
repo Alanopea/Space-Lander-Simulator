@@ -1,7 +1,5 @@
-# dashboard_UI.py
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
 from PyQt5.QtCore import QTimer, Qt
-from panels.telemetry_panel_UI import TelemetryPanel
 from panels.emergency_panel_UI import EmergencyPanel
 from panels.status_panel_UI import StatusPanel
 from panels.radar_panel_UI import RadarPanel
@@ -10,12 +8,11 @@ from panels.radar_panel_UI import RadarPanel
 class Dashboard(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Lunar Lander Simulation Dashboard")
+        self.setWindowTitle("Dashboard")
         self.setGeometry(100, 100, 1200, 700)
 
         # ---- Panels ----
         self.status_panel = StatusPanel()
-        self.telemetry_panel = TelemetryPanel()
         self.emergency_panel = EmergencyPanel()
         self.radar_panel = RadarPanel(self)
 
@@ -28,7 +25,6 @@ class Dashboard(QWidget):
 
         # Left column (telemetry stacked)
         left_layout = QVBoxLayout()
-        left_layout.addWidget(self.telemetry_panel)
 
         # Right dock (emergency panel bottom-right with margins)
         right_dock = QVBoxLayout()
@@ -56,7 +52,6 @@ class Dashboard(QWidget):
         self.timer.start(200)
 
     def update_dashboard(self):
-        """Fake simulation loop with altitude decrease and alerts."""
         self.time += 0.2
         altitude = max(0, 200 - 10 * self.time)
         velocity = -10
@@ -65,13 +60,13 @@ class Dashboard(QWidget):
         status = "LANDED" if altitude <= 0 else "DESCENDING"
 
         # Update panels
-        self.telemetry_panel.update_telemetry(self.time, altitude, velocity, attitude, status)
         self.status_panel.set_status(status)
         self.radar_panel.update_attitude(yaw=self.time * 10)
 
-        # ---- Example Alerts ----
-        if 0 < altitude < 100:  # caution case
+        # ---- Alerts ----
+        if 0 < altitude < 100:
             self.emergency_panel.trigger_caution("Low altitude margin! Prepare for throttle-up.")
 
-        #if altitude <= 0:  # warning case
-            #self.emergency_panel.trigger_warning("Touchdown detected with high descent rate!")
+        if altitude <= 0:
+            self.emergency_panel.trigger_warning("Touchdown detected with high descent rate!")
+
