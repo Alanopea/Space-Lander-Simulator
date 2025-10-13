@@ -1,56 +1,117 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel
+from PyQt5.QtWidgets import QWidget, QGridLayout, QLabel
 from PyQt5.QtCore import Qt
-import pyqtgraph as pg
 import numpy as np
 
 class TelemetryPanel(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        # 900px wide, 300px tall (horizontal x vertical)
         self.setFixedSize(900, 300)
-        self.move(35, 205)
-        layout = QVBoxLayout()
-        layout.setContentsMargins(15, 15, 15, 15)
-        layout.setSpacing(8)
+        # place 30px from left, 200px from top of dashboard
+        self.move(30, 200)
 
-        self.status_label = QLabel("Status: Descending")
-        self.altitude_label = QLabel("Altitude (Z): 1000 m")
-        self.vert_speed_label = QLabel("Vertical Speed: -15 m/s")
-        self.horiz_speed_label = QLabel("Horizontal Drift: 0 m/s")
-        self.vel_mag_label = QLabel("Total Velocity: 15 m/s")
-        self.attitude_label = QLabel("Attitude (Pitch, Roll, Yaw): (0°, 0°, 0°)")
+        grid = QGridLayout()
+        grid.setContentsMargins(12, 12, 12, 12)
+        grid.setHorizontalSpacing(20)
+        grid.setVerticalSpacing(6)
 
-        for lbl in [self.status_label, self.altitude_label, self.vert_speed_label,
-                    self.horiz_speed_label, self.vel_mag_label, self.attitude_label]:
-            lbl.setAlignment(Qt.AlignLeft)
-            layout.addWidget(lbl)
+        # Labels (left column = name, right column = value)
+        labels = [
+            "Altitude (m)",
+            "Vertical Velocity (m/s)",
+            "Horizontal Velocity (m/s)",
+            "Total Speed (m/s)",
+            "Acceleration (m/s²)",
+            "Orientation (Pitch, Roll, Yaw) (°)",
+            "Angular Velocity (°/s)",
+            "Total Mass (kg)",
+            "Fuel Remaining (kg)",
+            "Fuel Remaining (%)"
+        ]
+        self.value_labels = {}
+        for i, name in enumerate(labels):
+            name_lbl = QLabel(name)
+            name_lbl.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+            val_lbl = QLabel("N/A")
+            val_lbl.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            grid.addWidget(name_lbl, i, 0)
+            grid.addWidget(val_lbl, i, 1)
+            self.value_labels[name] = val_lbl
 
-        # Real-time plot
-        self.plot_widget = pg.PlotWidget()
-        self.plot_widget.setTitle("Altitude vs Time")
-        self.plot_widget.setLabel("bottom", "Time", "s")
-        self.plot_widget.setLabel("left", "Altitude", "m")
-        self.altitude_curve = self.plot_widget.plot(pen="y")
-        layout.addWidget(self.plot_widget)
+        self.setLayout(grid)
 
-        self.setLayout(layout)
+        # For computing derivatives
+        self._prev_time = None
+        self._prev_vel = None
+        self._prev_ori = None  # assumed Euler angles in radians
 
-        self.time_data = []
-        self.altitude_data = []
+    def update_telemetry(self, t, pos, vel, ori, total_mass=None, fuel_mass=None, initial_fuel_mass=None):
+        """
+        t      : time (seconds)
+        pos    : position array-like [x, z, y] or [x, y, z] (uses pos[1] as altitude as in project)
+        vel    : velocity array-like [vx, vy, vz] (uses vel[1] as vertical)
+        ori    : euler angles array-like (radians) [pitch, roll, yaw] expected
+        total_mass, fuel_mass, initial_fuel_mass : optional numeric telemetry values
+        """
+        # Ensure numpy arrays
+        pos = np.asarray(pos, dtype=float)
+        vel = np.asarray(vel, dtype=float)
+        ori = np.asarray(ori, dtype=float)
 
-    def update_telemetry(self, t, pos, vel, ori, status="Descending"):
-        altitude = pos[1]
-        vertical_speed = vel[1]
-        horizontal_speed = np.linalg.norm([vel[0], vel[2]])
-        velocity_magnitude = np.linalg.norm(vel)
-        pitch, roll, yaw = np.degrees(ori)
+        # Altitude (using pos[1] like your project)
+        altitude = float(pos[1])
+        vert_v = float(vel[1])
+        horiz_v = float(np.linalg.norm([vel[0], vel[2]]))
+        total_speed = float(np.linalg.norm(vel))
 
-        self.status_label.setText(f"Status: {status}")
-        self.altitude_label.setText(f"Altitude (Z): {altitude:.2f} m")
-        self.vert_speed_label.setText(f"Vertical Speed: {vertical_speed:.2f} m/s")
-        self.horiz_speed_label.setText(f"Horizontal Drift: {horizontal_speed:.2f} m/s")
-        self.vel_mag_label.setText(f"Total Velocity: {velocity_magnitude:.2f} m/s")
-        self.attitude_label.setText(f"Attitude (Pitch, Roll, Yaw): ({pitch:.1f}°, {roll:.1f}°, {yaw:.1f}°)")
+        # Time delta for derivatives
+        accel = None
+        ang_vel = None
+        if self._prev_time is None:
+            dt = None
+        else:
+            dt = t - self._prev_time if t is not None else None
 
-        self.time_data.append(t)
-        self.altitude_data.append(altitude)
-        self.altitude_curve.setData(self.time_data, self.altitude_data)
+        if dt and dt > 0 and self._prev_vel is not None:
+            accel_vec = (vel - self._prev_vel) / dt
+            accel = float(np.linalg.norm(accel_vec))
+        else:
+            accel = 0.0
+
+        if dt and dt > 0 and self._prev_ori is not None:
+            # Compute angular velocity (deg/s) from change in Euler angles
+            delta_ori = ori - self._prev_ori
+            ang_vel_vec = np.degrees(delta_ori / dt)
+            ang_vel = float(np.linalg.norm(ang_vel_vec))
+        else:
+            ang_vel = 0.0
+
+        # Orientation in degrees (pitch, roll, yaw)
+        orient_deg = tuple(np.degrees(ori))
+        orient_str = f"{orient_deg[0]:.1f}°, {orient_deg[1]:.1f}°, {orient_deg[2]:.1f}°"
+
+        # Mass and fuel display
+        total_mass_str = f"{total_mass:.1f} kg" if total_mass is not None else "N/A"
+        fuel_kg_str = f"{fuel_mass:.1f} kg" if fuel_mass is not None else "N/A"
+        if fuel_mass is not None and initial_fuel_mass is not None and initial_fuel_mass > 0:
+            fuel_pct = (fuel_mass / initial_fuel_mass) * 100.0
+            fuel_pct_str = f"{fuel_pct:.1f} %"
+        else:
+            fuel_pct_str = "N/A"
+
+        # Update UI
+        self.value_labels["Altitude (m)"].setText(f"{altitude:.2f}")
+        self.value_labels["Vertical Velocity (m/s)"].setText(f"{vert_v:.2f}")
+        self.value_labels["Horizontal Velocity (m/s)"].setText(f"{horiz_v:.2f}")
+        self.value_labels["Total Speed (m/s)"].setText(f"{total_speed:.2f}")
+        self.value_labels["Acceleration (m/s²)"].setText(f"{accel:.2f}")
+        self.value_labels["Orientation (Pitch, Roll, Yaw) (°)"].setText(orient_str)
+        self.value_labels["Angular Velocity (°/s)"].setText(f"{ang_vel:.2f}")
+        self.value_labels["Total Mass (kg)"].setText(total_mass_str)
+        self.value_labels["Fuel Remaining (kg)"].setText(fuel_kg_str)
+        self.value_labels["Fuel Remaining (%)"].setText(fuel_pct_str)
+
+        # Save previous sample
+        self._prev_time = t
+        self._prev_vel = vel.copy()
+        self._prev_ori = ori.copy()
