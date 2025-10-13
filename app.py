@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QApplication
 from UI.dashboard_UI import Dashboard
-from UI.panels.simulation_controls_UI import SimulationControls
+from UI.panels.simulation_panel_UI import SimulationPanel
 from core.EnvironmentManager import EnvironmentManager
 import sys
 
@@ -11,7 +11,7 @@ if __name__ == "__main__":
     dashboard = Dashboard()
 
     # create controls as a child and embed into dashboard via connect_controls()
-    controls = SimulationControls(env_mgr, parent=dashboard)
+    controls = SimulationPanel(env_mgr, parent=dashboard)
     dashboard.connect_controls(controls)
 
     dashboard.show()

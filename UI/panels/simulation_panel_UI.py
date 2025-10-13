@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QComboBox, QLabel, QPushButton, QGroupBox
 from PyQt5.QtCore import pyqtSignal, Qt
 
-class SimulationControls(QWidget):
+class SimulationPanel(QWidget):
     # Signals:
     # startRequested: emits planet name
     startRequested = pyqtSignal(str)

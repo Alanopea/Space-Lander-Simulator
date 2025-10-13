@@ -9,7 +9,7 @@ from core.pid_controller import PIDController
 from ui_integration.step_simulator import StepSimulator
 from ui_integration.simulation_worker import SimulationWorker
 from UI.panels.telemetry_panel_UI import TelemetryPanel
-from UI.panels.simulation_controls_UI import SimulationControls
+from UI.panels.simulation_panel_UI import SimulationPanel
 
 import numpy as np
 
@@ -52,12 +52,12 @@ class Dashboard(QWidget):
         self.sim_thread = None
         self.sim_worker = None
         self.simulator_wrapper = None  # StepSimulator instance
-        self._controls = None  # will hold SimulationControls instance when connected
+        self._controls = None  # will hold SimulationPanel instance when connected
 
     # Public connector: attach controls signals to dashboard handlers
     def connect_controls(self, controls: object):
         """
-        controls: instance of SimulationControls
+        controls: instance of SimulationPanel
         This method will embed the controls widget into the dashboard UI and connect signals.
         """
         # parent it to the dashboard so it's visually contained
