@@ -3,8 +3,10 @@ from ui_integration.interfaces import ISimulator
 from core.Simulator import Simulator
 
 class StepSimulator(ISimulator):
-    def __init__(self, planet, controller=None, initial_altitude=1000.0):
-        self.simulator = Simulator(planet, controller=controller, initial_altitude=initial_altitude)
+    def __init__(self, planet, controller=None, initial_altitude=1000.0, lander_class=None, lander_instance=None):
+        # Forward lander_class/lander_instance into core.Simulator so UI can choose lander
+        self.simulator = Simulator(planet, controller=controller, initial_altitude=initial_altitude,
+                                   lander_class=lander_class, lander_instance=lander_instance)
         self.time = 0.0
         self.finished = False
 

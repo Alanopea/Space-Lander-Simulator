@@ -1,17 +1,34 @@
 ﻿import numpy as np
-from core.Lander import MoonLander
+from core.Landers.Lander import Lander
 from core.PhysicsEngine import PhysicsEngine
 from core.DataLogger import DataLogger
 import matplotlib.pyplot as plt
 
 class Simulator:
-    def __init__(self, planet, controller=None, initial_altitude=1000.0):
+    def __init__(self, planet, controller=None, initial_altitude=1000.0, lander_class=None, lander_instance=None):
+        """
+        Simulator now accepts either:
+          - lander_instance: a constructed Lander object, or
+          - lander_class: a Lander subclass (callable taking planet)
+        If neither provided, default to MoonLander.
+        """
         self.planet = planet
-        self.lander = MoonLander(planet)
+        self.controller = controller
+
+        # Determine lander to use
+        if lander_instance is not None:
+            self.lander = lander_instance
+        else:
+            if lander_class is None:
+                # default lander
+                from core.Landers.StarshipPayload import StarshipPayload
+                lander_class = StarshipPayload
+            self.lander = lander_class(planet)
+
+        # place at initial altitude
         self.lander.position = np.array([0.0, initial_altitude, 0.0])
         self.physics = PhysicsEngine(self.lander)
         self.logger = DataLogger()
-        self.controller = controller
 
     def step(self, dt, thrust_vector=np.array([0.0, 1.0, 0.0]), thrust_force=None):
         # If controller is set, override thrust force
