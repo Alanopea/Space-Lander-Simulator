@@ -5,7 +5,7 @@ from UI.panels.emergency_panel_UI import EmergencyPanel
 from UI.panels.status_panel_UI import StatusPanel
 from UI.panels.radar_panel_UI import RadarPanel
 from core.EnvironmentManager import EnvironmentManager
-from core.pid_controller import PIDController
+from core.controllers.pid_controller import PIDController
 from ui_integration.step_simulator import StepSimulator
 from ui_integration.simulation_worker import SimulationWorker
 from UI.panels.telemetry_panel_UI import TelemetryPanel

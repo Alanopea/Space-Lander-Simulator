@@ -1,9 +1,8 @@
-﻿
-# Main entry point for the simulation. Selects planet and starts simulation.
+﻿# Main entry point for the simulation. Selects planet and starts simulation.
 
 from core.EnvironmentManager import EnvironmentManager
 from core.Simulator import Simulator
-from core.pid_controller import PIDController
+from core.controllers.pid_controller import PIDController
 
 if __name__ == "__main__":
     manager = EnvironmentManager()
@@ -21,7 +20,7 @@ if __name__ == "__main__":
     planet = manager.get_planet(planet_name)
     
     # Setpoint: target descent rate at touchdown
-    pid = PIDController(kp=300, ki=0, kd=120, setpoint=-2.0)
+    pid = PIDController(kp=300, ki=0, kd=120, setpoint=-2.0, output_limits=(0.0, 2.0e6))
 
     simulator = Simulator(planet, controller=pid)
     simulator.run(duration=60, dt=0.1)

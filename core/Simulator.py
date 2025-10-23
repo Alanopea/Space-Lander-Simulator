@@ -21,8 +21,8 @@ class Simulator:
         else:
             if lander_class is None:
                 # default lander
-                from core.Landers.StarshipPayload import StarshipPayload
-                lander_class = StarshipPayload
+                from core.Landers.MoonLander import MoonLander
+                lander_class = MoonLander
             self.lander = lander_class(planet)
 
         # place at initial altitude

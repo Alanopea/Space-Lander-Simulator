@@ -1,10 +1,5 @@
 from abc import ABC, abstractmethod
-
-class IController(ABC):
-    @abstractmethod
-    def update(self, measurement, dt):
-        """Return control output given measurement and dt."""
-        raise NotImplementedError
+from core.controllers.IController import IController
 
 class ISimulator(ABC):
     @abstractmethod
