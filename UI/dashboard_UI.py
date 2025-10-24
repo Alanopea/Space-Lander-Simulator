@@ -11,7 +11,11 @@ from ui_integration.simulation_worker import SimulationWorker
 from UI.panels.telemetry_panel_UI import TelemetryPanel
 from UI.panels.simulation_panel_UI import SimulationPanel
 
+# Engine panel import
+from UI.panels.EnginePanelUI import EnginePanel
+
 import numpy as np
+
 
 class Dashboard(QWidget):
     def __init__(self):
@@ -54,6 +58,21 @@ class Dashboard(QWidget):
         self.simulator_wrapper = None  # StepSimulator instance
         self._controls = None  # will hold SimulationPanel instance when connected
 
+        # Engine panel (top-right). Create once and hide until simulation provides a lander
+        self.engine_panel = EnginePanel(lander=None, parent=self)
+        self.engine_panel.hide()
+
+    def resizeEvent(self, event):
+        # keep engine panel anchored to top-right when window resizes
+        try:
+            if self.engine_panel and self.engine_panel.isVisible():
+                x = max(10, self.width() - self.engine_panel.width() - 20)
+                y = 20
+                self.engine_panel.move(x, y)
+        except Exception:
+            pass
+        super().resizeEvent(event)
+
     # Public connector: attach controls signals to dashboard handlers
     def connect_controls(self, controls: object):
         """
@@ -84,6 +103,17 @@ class Dashboard(QWidget):
 
         # create fresh simulator wrapper each start
         self.simulator_wrapper = StepSimulator(planet, controller=pid, initial_altitude=1000.0)
+
+        # attach engine panel to the current lander and place at top-right
+        try:
+            self.engine_panel.lander = self.simulator_wrapper.simulator.lander
+            x = max(10, self.width() - self.engine_panel.width() - 20)
+            y = 20
+            self.engine_panel.move(x, y)
+            self.engine_panel.show()
+            self.engine_panel.update_panel()
+        except Exception:
+            pass
 
         # set radar dimensions if available
         try:
@@ -136,6 +166,14 @@ class Dashboard(QWidget):
             except Exception:
                 pass
 
+        # hide and detach engine panel
+        try:
+            if self.engine_panel is not None:
+                self.engine_panel.lander = None
+                self.engine_panel.hide()
+        except Exception:
+            pass
+
         # Ensure references removed
         self.sim_worker = None
         self.sim_thread = None
@@ -150,12 +188,23 @@ class Dashboard(QWidget):
 
     def on_telemetry(self, t, pos, vel, ori, **kwargs):
         # radar expects yaw in degrees inside its update method
-        self.radar_panel.update_attitude(yaw=float(np.degrees(ori[2])) if ori is not None else 0.0)
+        try:
+            yaw = float(np.degrees(ori[2])) if ori is not None else 0.0
+        except Exception:
+            yaw = 0.0
+        self.radar_panel.update_attitude(yaw=yaw)
         self.status_panel.update_telemetry(t, pos, vel, ori)
         total_mass = kwargs.get("total_mass", None)
         fuel_mass = kwargs.get("fuel_mass", None)
         initial_fuel = kwargs.get("initial_fuel_mass", None)
         self.telemetry_panel.update_telemetry(t, pos, vel, ori, total_mass=total_mass, fuel_mass=fuel_mass, initial_fuel_mass=initial_fuel)
+
+        # refresh engine panel visuals if visible
+        try:
+            if self.engine_panel is not None and self.engine_panel.isVisible():
+                self.engine_panel.update_panel()
+        except Exception:
+            pass
 
     def on_alert(self, level, message):
         self.emergency_panel.handle_alert(level, message)
@@ -167,6 +216,15 @@ class Dashboard(QWidget):
                 logger.plot()
             except Exception:
                 pass
+
+        # ensure engine panel detached
+        try:
+            if self.engine_panel is not None:
+                self.engine_panel.lander = None
+                self.engine_panel.hide()
+        except Exception:
+            pass
+
         self.sim_worker = None
         self.sim_thread = None
         self.simulator_wrapper = None
@@ -177,6 +235,3 @@ class Dashboard(QWidget):
                 self._controls.reset_ui()
         except Exception:
             pass
-        self.sim_worker = None
-        self.sim_thread = None
-        self.simulator_wrapper = None
