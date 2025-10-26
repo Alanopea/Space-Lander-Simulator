@@ -3,10 +3,16 @@ from core.Landers.Lander import Lander
 from core.PhysicsEngine import PhysicsEngine
 from core.DataLogger import DataLogger
 from core.ThrustAllocator import ThrustAllocator
+from core.controllers.controller_factory import make_controller
 
 class Simulator:
     def __init__(self, planet, controller=None, initial_altitude=1000.0, lander_class=None, lander_instance=None):
         self.planet = planet
+
+        # If no controller provided, build default via factory (default = LQR)
+        if controller is None:
+            # keep default setpoint consistent with existing PID defaults
+            controller = make_controller(kind="lqr", setpoint=-20.0)
         self.controller = controller
 
         # Determine lander to use
@@ -14,8 +20,8 @@ class Simulator:
             self.lander = lander_instance
         else:
             if lander_class is None:
-                from core.Landers.StarshipPayload import StarshipPayload
-                lander_class = StarshipPayload
+                from core.Landers.Falcon9Booster import Falcon9Booster
+                lander_class = Falcon9Booster
             self.lander = lander_class(planet)
 
         # place at initial altitude

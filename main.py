@@ -2,8 +2,7 @@
 
 from core.EnvironmentManager import EnvironmentManager
 from core.Simulator import Simulator
-# from core.controllers.pid_controller import PIDController
-from core.controllers.PIDConfig import make_pid
+from core.config import make_default_controller, INITIAL_ALTITUDE
 
 if __name__ == "__main__":
     manager = EnvironmentManager()
@@ -20,9 +19,8 @@ if __name__ == "__main__":
 
     planet = manager.get_planet(planet_name)
     
-    # Setpoint: target descent rate at touchdown
-    # use the centralized PID factory; override output_limits as before
-    pid = make_pid(output_limits=(0.0, 2.0e6))
+    # build controller from centralized config
+    controller = make_default_controller()
 
-    simulator = Simulator(planet, controller=pid)
+    simulator = Simulator(planet, controller=controller, initial_altitude=INITIAL_ALTITUDE)
     simulator.run(duration=60, dt=0.1)

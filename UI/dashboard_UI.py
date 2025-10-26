@@ -5,7 +5,7 @@ from UI.panels.emergency_panel_UI import EmergencyPanel
 from UI.panels.status_panel_UI import StatusPanel
 from UI.panels.radar_panel_UI import RadarPanel
 from core.EnvironmentManager import EnvironmentManager
-from core.controllers.PIDConfig import make_pid
+from core.config import make_default_controller, INITIAL_ALTITUDE
 from ui_integration.step_simulator import StepSimulator
 from ui_integration.simulation_worker import SimulationWorker
 from UI.panels.telemetry_panel_UI import TelemetryPanel
@@ -98,11 +98,17 @@ class Dashboard(QWidget):
 
         planet = self.env_manager.get_planet(planet_name) if planet_name else self.env_manager.get_planet(self.env_manager.list_planets()[0])
 
-        # unified/default PID via factory
-        pid = make_pid()  # use defaults from core.controllers.pid_config
+        # create controller from centralized config (default = LQR)
+        controller = make_default_controller()
+
+        # get initial altitude from controls (SimulationPanel) if available, else default from config
+        try:
+            initial_altitude = float(getattr(self._controls, "initial_altitude", INITIAL_ALTITUDE))
+        except Exception:
+            initial_altitude = INITIAL_ALTITUDE
 
         # create fresh simulator wrapper each start
-        self.simulator_wrapper = StepSimulator(planet, controller=pid, initial_altitude=2000.0)
+        self.simulator_wrapper = StepSimulator(planet, controller=controller, initial_altitude=initial_altitude)
 
         # attach engine panel to the current lander and place at top-right
         try:
