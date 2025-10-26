@@ -3,17 +3,19 @@ from core.Landers.Lander import Lander
 from core.PhysicsEngine import PhysicsEngine
 from core.DataLogger import DataLogger
 from core.ThrustAllocator import ThrustAllocator
-from core.controllers.controller_factory import make_controller
+from core.config import make_default_controller
 
 class Simulator:
-    def __init__(self, planet, controller=None, initial_altitude=1000.0, lander_class=None, lander_instance=None):
+    def __init__(self, planet, controller=None, initial_altitude=1000.0, initial_velocity=0.0, lander_class=None, lander_instance=None):
         self.planet = planet
 
         # If no controller provided, build default via factory (default = LQR)
         if controller is None:
-            # keep default setpoint consistent with existing PID defaults
-            controller = make_controller(kind="lqr", setpoint=-20.0)
+            controller = make_default_controller()
         self.controller = controller
+
+        # preserve starting velocity for reset
+        self.initial_velocity = float(initial_velocity)
 
         # Determine lander to use
         if lander_instance is not None:
@@ -26,6 +28,8 @@ class Simulator:
 
         # place at initial altitude
         self.lander.position = np.array([0.0, initial_altitude, 0.0])
+        # set initial vertical velocity (y axis)
+        self.lander.velocity = np.array([0.0, self.initial_velocity, 0.0])
         self.physics = PhysicsEngine(self.lander)
         self.logger = DataLogger()
 
@@ -140,7 +144,7 @@ class Simulator:
 
     def reset(self, initial_altitude=1000.0):
         self.lander.position = np.array([0.0, initial_altitude, 0.0])
-        self.lander.velocity = np.array([0.0, 0.0, 0.0])
+        self.lander.velocity = np.array([0.0, self.initial_velocity, 0.0])
         self.lander.orientation = np.array([0.0, 0.0, 0.0])
         self.lander.angular_velocity = np.array([0.0, 0.0, 0.0])
         self.logger = DataLogger()

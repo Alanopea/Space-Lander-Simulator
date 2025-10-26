@@ -19,7 +19,7 @@ class LQRController(IController):
                  tol: float = 1e-6, max_iter: int = 200):
         # default cost matrices if not provided
         if Q is None:
-            Q = np.diag([0.01, 5.0])   # penalize velocity more moderately; tune as needed
+            Q = np.diag([0.01, 200.0])   # penalize velocity more moderately; tune as needed
         if R is None:
             R = np.array([[1.0]])     # scalar control penalty
 

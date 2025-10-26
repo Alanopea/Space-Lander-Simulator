@@ -2,7 +2,7 @@
 
 from core.EnvironmentManager import EnvironmentManager
 from core.Simulator import Simulator
-from core.config import make_default_controller, INITIAL_ALTITUDE
+from core.config import make_default_controller, INITIAL_ALTITUDE, INITIAL_VELOCITY
 
 if __name__ == "__main__":
     manager = EnvironmentManager()
@@ -22,5 +22,5 @@ if __name__ == "__main__":
     # build controller from centralized config
     controller = make_default_controller()
 
-    simulator = Simulator(planet, controller=controller, initial_altitude=INITIAL_ALTITUDE)
+    simulator = Simulator(planet, controller=controller, initial_altitude=INITIAL_ALTITUDE, initial_velocity=INITIAL_VELOCITY)
     simulator.run(duration=60, dt=0.1)

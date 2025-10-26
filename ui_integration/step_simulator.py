@@ -1,18 +1,20 @@
 import numpy as np
 from ui_integration.interfaces import ISimulator
 from core.Simulator import Simulator
-
+from core.config import INITIAL_VELOCITY
 class StepSimulator(ISimulator):
-    def __init__(self, planet, controller=None, initial_altitude=1000.0, lander_class=None, lander_instance=None):
+    def __init__(self, planet, controller=None, initial_altitude=1000.0, initial_velocity=INITIAL_VELOCITY, lander_class=None, lander_instance=None):
         """
         Adapter that exposes a simple step/reset/get_logger interface for the UI.
         Keeps its own initial_altitude so reset() returns to the same start state.
         """
         self.initial_altitude = float(initial_altitude)
+        self.initial_velocity = float(initial_velocity)
         self.simulator = Simulator(
             planet,
             controller=controller,
             initial_altitude=self.initial_altitude,
+            initial_velocity=self.initial_velocity,
             lander_class=lander_class,
             lander_instance=lander_instance
         )

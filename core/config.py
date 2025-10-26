@@ -3,12 +3,16 @@
 DEFAULT_CONTROLLER_KIND = "lqr"   # "lqr" or "pid"
 INITIAL_ALTITUDE = 1000.0        # meters (used by Dashboard / main entry)
 
+# centralized setpoint and initial velocity
+LANDING_SETPOINT = -20.0          # desired vertical velocity at touchdown (m/s, negative = descending)
+INITIAL_VELOCITY = -100.0           # starting vertical velocity (m/s) (positive = up)
+
 # PID defaults (used if controller kind == "pid")
 PID_DEFAULTS = {
     "kp": 300.0,
     "ki": 0.0,
     "kd": 120.0,
-    "setpoint": -2.0,
+    "setpoint": LANDING_SETPOINT,
     "output_limits": None
 }
 
@@ -26,5 +30,6 @@ def make_default_controller():
         kd=PID_DEFAULTS["kd"],
         setpoint=PID_DEFAULTS["setpoint"],
         output_limits=PID_DEFAULTS["output_limits"],
-        K=None
+        Q=None,
+        R=None
     )

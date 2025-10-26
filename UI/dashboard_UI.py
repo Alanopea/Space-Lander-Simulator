@@ -5,7 +5,7 @@ from UI.panels.emergency_panel_UI import EmergencyPanel
 from UI.panels.status_panel_UI import StatusPanel
 from UI.panels.radar_panel_UI import RadarPanel
 from core.EnvironmentManager import EnvironmentManager
-from core.config import make_default_controller, INITIAL_ALTITUDE
+from core.config import make_default_controller, INITIAL_ALTITUDE, INITIAL_VELOCITY
 from ui_integration.step_simulator import StepSimulator
 from ui_integration.simulation_worker import SimulationWorker
 from UI.panels.telemetry_panel_UI import TelemetryPanel
@@ -107,8 +107,14 @@ class Dashboard(QWidget):
         except Exception:
             initial_altitude = INITIAL_ALTITUDE
 
+        # get initial vertical velocity from controls if available, else default from config
+        try:
+            initial_velocity = float(getattr(self._controls, "initial_velocity", INITIAL_VELOCITY))
+        except Exception:
+            initial_velocity = INITIAL_VELOCITY
+
         # create fresh simulator wrapper each start
-        self.simulator_wrapper = StepSimulator(planet, controller=controller, initial_altitude=initial_altitude)
+        self.simulator_wrapper = StepSimulator(planet, controller=controller, initial_altitude=initial_altitude, initial_velocity=initial_velocity)
 
         # attach engine panel to the current lander and place at top-right
         try:
