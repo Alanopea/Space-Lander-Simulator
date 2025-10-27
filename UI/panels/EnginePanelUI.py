@@ -159,22 +159,26 @@ class EnginePanel(QWidget):
             elif state == "on":
                 glow_r = icon_r * 1.6
                 grad = QRadialGradient(x, y, glow_r)
-                grad.setColorAt(0, QColor(255, 255, 255, 180))
-                grad.setColorAt(1, QColor(255, 255, 255, 10))
+                grad.setColorAt(0, QColor(255, 255, 255, 60))
+                grad.setColorAt(1, QColor(255, 255, 255, 0))
                 p.setBrush(grad)
                 p.setPen(Qt.NoPen)
                 p.drawEllipse(QRectF(x - glow_r, y - glow_r, glow_r * 2.0, glow_r * 2.0))
-                p.setBrush(QColor(255, 255, 255))
+
+                # outer ring
+                p.setBrush(QColor(40, 40, 40))
                 p.setPen(QPen(QColor(20, 20, 20), 1))
                 p.drawEllipse(QRectF(x - icon_r, y - icon_r, 2.0 * icon_r, 2.0 * icon_r))
 
+                # white inner fill proportional to thrust
                 max_t = float(getattr(e, "max_thrust", 1.0)) if e else 1.0
-                throttle = (thrust / max_t) if max_t > 0 else 0.0
+                throttle = max(0.0, min(1.0, thrust / max_t))
                 inner_r = icon_r * 0.8 * throttle
                 if inner_r > 0.0:
-                    p.setBrush(QColor(120, 120, 120))
+                    p.setBrush(QColor(255, 255, 255))
                     p.setPen(Qt.NoPen)
                     p.drawEllipse(QRectF(x - inner_r, y - inner_r, 2.0 * inner_r, 2.0 * inner_r))
+
 
             elif state == "faulty":
                 p.setPen(QPen(QColor(120, 90, 0), 2))
