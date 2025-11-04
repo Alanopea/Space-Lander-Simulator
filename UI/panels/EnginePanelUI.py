@@ -6,27 +6,28 @@ import math
 class EnginePanel(QWidget):
     def __init__(self, lander=None, parent=None):
         super().__init__(parent)
-        self.setFixedSize(350, 350)
+        self.setFixedSize(450, 350)
         self.lander = lander
 
-        # Info labels (below visualization)
+        # Labels
         self.lbl_active = QLabel(self)
         self.lbl_total = QLabel(self)
         self.lbl_per_engine = QLabel(self)
         for lbl in (self.lbl_active, self.lbl_total, self.lbl_per_engine):
-            lbl.setStyleSheet("color: white; font-family: 'Helvetica';")
+            lbl.setStyleSheet("color: white; font-family: 'Helvetica'; background: transparent;")
             lbl.setWordWrap(True)
-        self.lbl_active.move(14, 245)
-        self.lbl_total.move(14, 265)
-        self.lbl_per_engine.setGeometry(14, 285, 230, 50)
 
-        # Fonts and base style
+        self.lbl_active.move(14, 265)
+        self.lbl_total.move(14, 285)
+        self.lbl_per_engine.setGeometry(14, 305, 400, 40)
+
         self._title_font = QFont("Helvetica", 13, QFont.Bold)
         self._label_font = QFont("Helvetica", 9)
-        self.setAutoFillBackground(False)
+
+        self.setAttribute(Qt.WA_StyledBackground, True)
+        self.setAutoFillBackground(True)
 
     def update_panel(self):
-        """Refresh info from lander and repaint"""
         if not self.lander or not getattr(self.lander, "engines", None):
             self.lbl_per_engine.setText("")
             self.update()
@@ -43,18 +44,23 @@ class EnginePanel(QWidget):
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing)
 
-        # --- Panel background ---
+        # --- Solid dark background ---
+        p.setBrush(QColor(25, 25, 30))
+        p.setPen(Qt.NoPen)
+        p.drawRoundedRect(self.rect(), 10, 10)
+
+        # --- Border ---
         rect = self.rect().adjusted(2, 2, -2, -2)
-        p.setBrush(QColor(20, 22, 25))
         p.setPen(QPen(QColor(80, 80, 85), 2))
+        p.setBrush(Qt.NoBrush)
         p.drawRoundedRect(rect, 10, 10)
 
         # --- Title ---
         p.setFont(self._title_font)
-        p.setPen(QColor(230, 230, 230))
+        p.setPen(QColor(240, 240, 240))
         p.drawText(QRectF(0, 8, self.width(), 24), Qt.AlignCenter, "Engine Panel")
 
-        # --- Visualization center ---
+        # --- Visualization area ---
         vis_left = 18
         vis_top = 38
         vis_w = 240
@@ -68,76 +74,36 @@ class EnginePanel(QWidget):
             p.end()
             return
 
-        # Map physical engine positions (x,z) into UI coordinates when available.
+        # Try to get real or schematic positions
         positions = []
         try:
             coords = []
             for e in engines:
                 pos = getattr(e, "position", None)
-                if pos is None or len(pos) < 3:
-                    coords.append((0.0, 0.0))
-                else:
-                    coords.append((float(pos[0]), float(pos[2])))
-
-            # If lander dimensions provided, use them to normalize mapping for consistent scale
+                coords.append((float(pos[0]), float(pos[2])) if pos and len(pos) >= 3 else (0.0, 0.0))
             dims = getattr(self.lander, "dimensions", None)
-            if dims is not None and len(dims) >= 3:
-                half_w = float(dims[0]) / 2.0
-                half_d = float(dims[2]) / 2.0
+            if dims and len(dims) >= 3:
+                half_w, half_d = float(dims[0]) / 2.0, float(dims[2]) / 2.0
             else:
-                # compute max absolute coordinate to avoid zero-scale
-                xs = [abs(x) for x, _ in coords]
-                zs = [abs(z) for _, z in coords]
-                half_w = max(xs) if xs else 0.0
-                half_d = max(zs) if zs else 0.0
-
-            max_dim = max(half_w, half_d, 1e-6)
+                half_w = max(abs(x) for x, _ in coords) or 1
+                half_d = max(abs(z) for _, z in coords) or 1
             outer_r = min(vis_w, vis_h) * 0.38
-
-            # If all positions near zero, fallback to schematic
-            if all(math.hypot(x, z) < 1e-6 for x, z in coords):
-                raise RuntimeError("fallback to schematic")
-
-            # Map coords proportionally to outer_r
             for x, z in coords:
-                sx = max(-1.0, min(1.0, x / max_dim))
-                sz = max(-1.0, min(1.0, z / max_dim))
+                sx, sz = x / half_w, z / half_d
                 positions.append((cx + sx * outer_r, cy + sz * outer_r))
-
-            # If mapping produced fewer positions (shouldn't happen), fallback
-            if len(positions) != n:
-                raise RuntimeError("mapping mismatch")
-
         except Exception:
-            # fallback schematic layout: center + outer ring (center-first if possible)
-            positions = []
-            if n == 1:
-                positions.append((cx, cy))
-            else:
-                # prefer 1 center and rest in ring (matches Falcon9 center+8)
-                inner_n = 1
-                outer_n = n - inner_n
-                inner_r = 20.0
-                outer_r = 80.0
-                # inner
-                for i in range(inner_n):
-                    theta = 2 * math.pi * i / max(1, inner_n)
-                    positions.append((cx + inner_r * math.cos(theta),
-                                      cy + inner_r * math.sin(theta)))
-                # outer
-                for i in range(outer_n):
-                    theta = 2 * math.pi * i / max(1, outer_n)
-                    positions.append((cx + outer_r * math.cos(theta),
-                                      cy + outer_r * math.sin(theta)))
+            outer_r = 80
+            for i in range(n):
+                theta = 2 * math.pi * i / n
+                positions.append((cx + outer_r * math.cos(theta),
+                                  cy + outer_r * math.sin(theta)))
 
-        # --- Draw engines ---
         icon_r = 10.0
         for i, pos in enumerate(positions):
             e = engines[i] if i < len(engines) else None
             x, y = pos
             state = "off"
             thrust = 0.0
-
             if e:
                 enabled = bool(getattr(e, "enabled", True))
                 status = getattr(e, "status", None)
@@ -148,47 +114,45 @@ class EnginePanel(QWidget):
                     state = "faulty"
                 elif enabled:
                     state = "on"
-                else:
-                    state = "off"
 
             if state == "off":
                 p.setPen(QPen(QColor(130, 130, 130), 1.2))
                 p.setBrush(Qt.NoBrush)
-                p.drawEllipse(QRectF(x - icon_r, y - icon_r, 2.0 * icon_r, 2.0 * icon_r))
+                p.drawEllipse(QRectF(x - icon_r, y - icon_r, 2*icon_r, 2*icon_r))
 
             elif state == "on":
+                # subtle glow (light gray, not white)
                 glow_r = icon_r * 1.6
                 grad = QRadialGradient(x, y, glow_r)
-                grad.setColorAt(0, QColor(255, 255, 255, 60))
-                grad.setColorAt(1, QColor(255, 255, 255, 0))
+                grad.setColorAt(0, QColor(180, 180, 180, 80))
+                grad.setColorAt(1, QColor(180, 180, 180, 0))
                 p.setBrush(grad)
                 p.setPen(Qt.NoPen)
-                p.drawEllipse(QRectF(x - glow_r, y - glow_r, glow_r * 2.0, glow_r * 2.0))
+                p.drawEllipse(QRectF(x - glow_r, y - glow_r, 2*glow_r, 2*glow_r))
 
-                # outer ring
+                # engine body
                 p.setBrush(QColor(40, 40, 40))
                 p.setPen(QPen(QColor(20, 20, 20), 1))
-                p.drawEllipse(QRectF(x - icon_r, y - icon_r, 2.0 * icon_r, 2.0 * icon_r))
+                p.drawEllipse(QRectF(x - icon_r, y - icon_r, 2*icon_r, 2*icon_r))
 
-                # white inner fill proportional to thrust
+                # inner fill proportional to thrust
                 max_t = float(getattr(e, "max_thrust", 1.0)) if e else 1.0
                 throttle = max(0.0, min(1.0, thrust / max_t))
                 inner_r = icon_r * 0.8 * throttle
                 if inner_r > 0.0:
-                    p.setBrush(QColor(255, 255, 255))
+                    p.setBrush(QColor(220, 220, 220))
                     p.setPen(Qt.NoPen)
-                    p.drawEllipse(QRectF(x - inner_r, y - inner_r, 2.0 * inner_r, 2.0 * inner_r))
-
+                    p.drawEllipse(QRectF(x - inner_r, y - inner_r, 2*inner_r, 2*inner_r))
 
             elif state == "faulty":
                 p.setPen(QPen(QColor(120, 90, 0), 2))
                 p.setBrush(QColor(255, 215, 0))
-                p.drawEllipse(QRectF(x - icon_r, y - icon_r, 2.0 * icon_r, 2.0 * icon_r))
+                p.drawEllipse(QRectF(x - icon_r, y - icon_r, 2*icon_r, 2*icon_r))
 
             elif state == "failed":
                 p.setPen(QPen(QColor(160, 0, 0), 2))
                 p.setBrush(QColor(200, 0, 0))
-                p.drawEllipse(QRectF(x - icon_r, y - icon_r, 2.0 * icon_r, 2.0 * icon_r))
+                p.drawEllipse(QRectF(x - icon_r, y - icon_r, 2*icon_r, 2*icon_r))
 
         # --- Power bar ---
         bar_x = vis_left + vis_w + 20
@@ -214,16 +178,13 @@ class EnginePanel(QWidget):
 
         p.setPen(Qt.NoPen)
         p.setBrush(color)
-        if fill_h > 6:
-            p.drawRoundedRect(QRectF(bar_x + 3, fill_top + 3, bar_w - 6, fill_h - 6), 3, 3)
-        elif fill_h > 0:
-            p.drawRect(QRectF(bar_x + 3, fill_top + 3, bar_w - 6, max(1, fill_h - 3)))
+        p.drawRoundedRect(QRectF(bar_x + 3, fill_top + 3, bar_w - 6, max(3, fill_h - 6)), 3, 3)
 
-        # Text percentage (use QRectF)
+        # Text percentage
         p.setFont(self._label_font)
         p.setPen(QColor(240, 240, 240))
         pct_text = f"{int(pct*100)}%"
-        text_rect = QRectF(bar_x + bar_w + 6, bar_y + bar_h / 2 - 12, 60, 24)
+        text_rect = QRectF(bar_x + bar_w + 6, bar_y + bar_h/2 - 12, 60, 24)
         p.drawText(text_rect, Qt.AlignLeft | Qt.AlignVCenter, pct_text)
 
         p.end()
