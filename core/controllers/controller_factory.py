@@ -1,25 +1,37 @@
-from core.controllers.PIDConfig import make_pid
+from core.controllers.pid_controller import PIDController
 from core.controllers.LQRController import LQRController
 
-def make_controller(kind: str = "lqr", **kwargs):
+def make_controller(kind: str, **kwargs):
     """
     Factory for controllers.
-    kind: 'lqr' | 'pid'
-    kwargs are forwarded to the specific constructor/factory.
-    Default: LQR controller.
+    
+    Args:
+        kind: 'lqr' | 'pid' - controller type to create
+        **kwargs: Arguments forwarded to the specific controller constructor
+            For PID: kp, ki, kd, setpoint, output_limits
+            For LQR: Q, R, setpoint
+    
+    Returns:
+        IController: Configured controller instance
+    
+    Raises:
+        ValueError: If kind is not 'lqr' or 'pid'
     """
-    kind = (kind or "lqr").strip().lower()
+    kind = kind.strip().lower() if kind else "lqr"
+    
     if kind == "pid":
-        return make_pid(
-            kp=kwargs.get("kp", 300.0),
-            ki=kwargs.get("ki", 0.0),
-            kd=kwargs.get("kd", 120.0),
-            setpoint=kwargs.get("setpoint", -10.0),
-            output_limits=kwargs.get("output_limits", None)
+        return PIDController(
+            kp=kwargs.get("kp"),
+            ki=kwargs.get("ki"),
+            kd=kwargs.get("kd"),
+            setpoint=kwargs.get("setpoint"),
+            output_limits=kwargs.get("output_limits")
         )
-
-    # Build LQR with optional Q, R, setpoint
-    Q = kwargs.get("Q", None)
-    R = kwargs.get("R", None)
-    setpoint = kwargs.get("setpoint", -10.0)
-    return LQRController(Q=Q, R=R, setpoint=setpoint)
+    elif kind == "lqr":
+        return LQRController(
+            Q=kwargs.get("Q"),
+            R=kwargs.get("R"),
+            setpoint=kwargs.get("setpoint")
+        )
+    else:
+        raise ValueError(f"Unknown controller kind: {kind}. Must be 'lqr' or 'pid'")
