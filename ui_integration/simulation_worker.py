@@ -3,7 +3,7 @@ from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QThread
 import time
 
 class SimulationWorker(QObject):
-    telemetry = pyqtSignal(float, object, object, object)   # time, position, velocity, orientation
+    telemetry = pyqtSignal(float, object, object, object, object)   # time, position, velocity, orientation, extras_dict
     status_changed = pyqtSignal(str)
     alert = pyqtSignal(str, str)   # level, message
     finished = pyqtSignal()
@@ -34,9 +34,10 @@ class SimulationWorker(QObject):
             vel = tel['velocity']
             ori = tel['orientation']
             t = tel['time']
+            extras = tel.get('extras', {})
 
             # emit telemetry to UI
-            self.telemetry.emit(t, pos, vel, ori)
+            self.telemetry.emit(t, pos, vel, ori, extras)
 
             # simple alert logic (adapt to your needs)
             if 0 < pos[1] < 100:

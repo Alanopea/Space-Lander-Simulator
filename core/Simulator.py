@@ -90,6 +90,7 @@ class Simulator:
         self.lander.velocity = np.array([0.0, self.initial_velocity, 0.0])
         self.lander.orientation = np.array([0.0, 0.0, 0.0])
         self.lander.angular_velocity = np.array([0.0, 0.0, 0.0])
+        self.lander.reset_fuel()  # Reset fuel to full
         self.logger = DataLogger()
         # Refresh managers in case engine config changed
         self.thrust_manager.refresh_allocator()

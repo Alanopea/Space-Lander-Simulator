@@ -13,6 +13,9 @@ class Lander(ABC):
         self.dry_mass = float(dry_mass)
         self.max_fuel_mass = float(max_fuel_mass)
         self.fuel_mass = float(max_fuel_mass)   # start full by default
+        
+        # Fuel consumption tracking
+        self.fuel_consumption_rate = 0.0  # kg/s
 
         self.thrust_per_engine = float(thrust_per_engine)
         self.engine_count = int(engine_count)
@@ -101,19 +104,37 @@ class Lander(ABC):
         return total
 
     # --- fuel & telemetry ---
-    def consume_fuel(self, amount_kg):
+    def consume_fuel(self, amount_kg, dt=0.0):
+        """
+        Consume fuel and update consumption rate.
+        
+        Args:
+            amount_kg: Amount of fuel to consume (kg)
+            dt: Time step (s) - used to calculate consumption rate
+        """
         consumed = min(self.fuel_mass, max(0.0, float(amount_kg)))
         self.fuel_mass -= consumed
+        
+        # Update fuel consumption rate (kg/s)
+        if dt > 0.0:
+            self.fuel_consumption_rate = consumed / dt
+        else:
+            self.fuel_consumption_rate = 0.0
+        
         return consumed
 
     def reset_fuel(self):
         self.fuel_mass = float(self.max_fuel_mass)
+        self.fuel_consumption_rate = 0.0
 
     def telemetry_extras(self):
         return {
             "total_mass": float(self.mass),
+            "dry_mass": float(self.dry_mass),
             "fuel_mass": float(self.fuel_mass),
             "max_fuel_mass": float(self.max_fuel_mass),
+            "fuel_consumption_rate": float(self.fuel_consumption_rate),  # kg/s
+            "fuel_percentage": (self.fuel_mass / self.max_fuel_mass * 100.0) if self.max_fuel_mass > 0 else 0.0,
             "engine_count": len(self.engines),
             "per_engine_thrust": [float(e.current_thrust) for e in self.engines],
             "per_engine_enabled": [bool(e.enabled) for e in self.engines],
