@@ -23,7 +23,10 @@ class ThrustManager:
         Returns:
             Array of per-engine thrust values (N)
         """
+        # Calculate required thrust: F = m * (a_desired + g)
+        # Ensure thrust is never negative (engines can't pull, only push)
         total_required = self.lander.mass * (desired_accel + gravity)
+        total_required = max(0.0, total_required)  # Ensure non-negative
         
         # Normalize thrust vector
         thrust_vec = np.asarray(thrust_vector, dtype=float)
