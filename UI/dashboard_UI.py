@@ -198,7 +198,7 @@ class Dashboard(QWidget):
         except Exception:
             pass
 
-    def on_telemetry(self, t, pos, vel, ori, **kwargs):
+    def on_telemetry(self, t, pos, vel, ori, extras):
         # radar expects yaw in degrees inside its update method
         try:
             yaw = float(np.degrees(ori[2])) if ori is not None else 0.0
@@ -206,10 +206,23 @@ class Dashboard(QWidget):
             yaw = 0.0
         self.radar_panel.update_attitude(yaw=yaw)
         self.status_panel.update_telemetry(t, pos, vel, ori)
-        total_mass = kwargs.get("total_mass", None)
-        fuel_mass = kwargs.get("fuel_mass", None)
-        initial_fuel = kwargs.get("initial_fuel_mass", None)
-        self.telemetry_panel.update_telemetry(t, pos, vel, ori, total_mass=total_mass, fuel_mass=fuel_mass, initial_fuel_mass=initial_fuel)
+        
+        # Extract fuel/mass data from extras
+        extras_dict = extras if isinstance(extras, dict) else {}
+        total_mass = extras_dict.get("total_mass", None)
+        fuel_mass = extras_dict.get("fuel_mass", None)
+        initial_fuel = extras_dict.get("max_fuel_mass", None)
+        fuel_consumption_rate = extras_dict.get("fuel_consumption_rate", None)
+        dry_mass = extras_dict.get("dry_mass", None)
+        
+        self.telemetry_panel.update_telemetry(
+            t, pos, vel, ori, 
+            total_mass=total_mass, 
+            fuel_mass=fuel_mass, 
+            initial_fuel_mass=initial_fuel,
+            fuel_consumption_rate=fuel_consumption_rate,
+            dry_mass=dry_mass
+        )
 
         # refresh engine panel visuals if visible
         try:

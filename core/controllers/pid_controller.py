@@ -30,22 +30,52 @@ class PIDController(IController):
         return v
 
     def update(self, measurement: float, dt: float) -> float:
+        """
+        Update controller with new measurement.
+        
+        Args:
+            measurement: Current velocity (m/s)
+            dt: Time step (s)
+            
+        Returns:
+            Desired acceleration (m/s^2) - negative means need more thrust
+        """
+        if dt <= 0.0:
+            dt = 1e-6  # Avoid division by zero
+        
         error = self.setpoint - float(measurement)
-        # integral with simple anti-windup by clamping to reasonable range if limits provided
-        self.integral += error * dt
-
-        # derivative
-        derivative = (error - self.prev_error) / dt if dt > 0 else 0.0
-
-        raw_output = (self.kp * error) + (self.ki * self.integral) + (self.kd * derivative)
+        
+        # Calculate derivative term (using error derivative for smoother response)
+        derivative = (error - self.prev_error) / dt
+        
+        # Calculate PID terms
+        proportional = self.kp * error
+        integral_term = self.ki * self.integral
+        derivative_term = self.kd * derivative
+        
+        # Update integral (will be conditionally applied based on anti-windup)
+        integral_increment = error * dt
+        self.integral += integral_increment
+        
+        # Calculate raw output
+        raw_output = proportional + integral_term + derivative_term
+        
+        # Clamp output to limits
         output = self._clamp_output(raw_output)
-
-        # anti-windup: if output saturated, prevent integral growing further
+        
+        # Anti-windup: if output saturated, prevent integral from accumulating
         if self._output_limits is not None and self.ki != 0.0:
             lo, hi = self._output_limits
-            if (hi is not None and raw_output > hi) or (lo is not None and raw_output < lo):
-                # back out integral increment
-                self.integral -= error * dt
+            saturated = (hi is not None and raw_output > hi) or (lo is not None and raw_output < lo)
+            if saturated:
+                # Back out the integral increment we just added to prevent windup
+                self.integral -= integral_increment
+            else:
+                # Also limit integral magnitude to prevent excessive buildup during small errors
+                # This helps prevent oscillations around the setpoint
+                max_integral_magnitude = abs((hi - lo) / (self.ki + 1e-9)) * 0.5  # Conservative limit
+                if abs(self.integral) > max_integral_magnitude:
+                    self.integral = max_integral_magnitude if self.integral > 0 else -max_integral_magnitude
 
         self.prev_error = error
         return output

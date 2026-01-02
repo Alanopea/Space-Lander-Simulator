@@ -47,11 +47,11 @@ class FuelManager:
             scale = self.lander.fuel_mass / fuel_needed
             scaled_thrusts = applied_thrusts * scale
             self._update_throttles_from_thrusts(scaled_thrusts)
-            self.lander.consume_fuel(self.lander.fuel_mass)
+            self.lander.consume_fuel(self.lander.fuel_mass, dt)
             return scaled_thrusts
         else:
             # Enough fuel - consume normally
-            self.lander.consume_fuel(fuel_needed)
+            self.lander.consume_fuel(fuel_needed, dt)
             return applied_thrusts
     
     def _calculate_mass_flow(self, applied_thrusts: np.ndarray) -> float:

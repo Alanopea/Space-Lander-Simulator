@@ -25,8 +25,11 @@ class TelemetryPanel(QWidget):
             "Orientation (Pitch, Roll, Yaw) (°)",
             "Angular Velocity (°/s)",
             "Total Mass (kg)",
+            "Dry Mass (kg)",
             "Fuel Remaining (kg)",
-            "Fuel Remaining (%)"
+            "Fuel Capacity (kg)",
+            "Fuel Remaining (%)",
+            "Fuel Consumption Rate (kg/s)"
         ]
         self.value_labels = {}
         for i, name in enumerate(labels):
@@ -45,13 +48,14 @@ class TelemetryPanel(QWidget):
         self._prev_vel = None
         self._prev_ori = None  # assumed Euler angles in radians
 
-    def update_telemetry(self, t, pos, vel, ori, total_mass=None, fuel_mass=None, initial_fuel_mass=None):
+    def update_telemetry(self, t, pos, vel, ori, total_mass=None, fuel_mass=None, initial_fuel_mass=None, 
+                        fuel_consumption_rate=None, dry_mass=None):
         """
         t      : time (seconds)
         pos    : position array-like [x, z, y] or [x, y, z] (uses pos[1] as altitude as in project)
         vel    : velocity array-like [vx, vy, vz] (uses vel[1] as vertical)
         ori    : euler angles array-like (radians) [pitch, roll, yaw] expected
-        total_mass, fuel_mass, initial_fuel_mass : optional numeric telemetry values
+        total_mass, fuel_mass, initial_fuel_mass, fuel_consumption_rate, dry_mass : optional numeric telemetry values
         """
         # Ensure numpy arrays
         pos = np.asarray(pos, dtype=float)
@@ -91,13 +95,18 @@ class TelemetryPanel(QWidget):
         orient_str = f"{orient_deg[0]:.1f}°, {orient_deg[1]:.1f}°, {orient_deg[2]:.1f}°"
 
         # Mass and fuel display
-        total_mass_str = f"{total_mass:.1f} kg" if total_mass is not None else "N/A"
-        fuel_kg_str = f"{fuel_mass:.1f} kg" if fuel_mass is not None else "N/A"
+        total_mass_str = f"{total_mass:.1f}" if total_mass is not None else "N/A"
+        dry_mass_str = f"{dry_mass:.1f}" if dry_mass is not None else "N/A"
+        fuel_kg_str = f"{fuel_mass:.1f}" if fuel_mass is not None else "N/A"
+        fuel_capacity_str = f"{initial_fuel_mass:.1f}" if initial_fuel_mass is not None else "N/A"
+        
         if fuel_mass is not None and initial_fuel_mass is not None and initial_fuel_mass > 0:
             fuel_pct = (fuel_mass / initial_fuel_mass) * 100.0
-            fuel_pct_str = f"{fuel_pct:.1f} %"
+            fuel_pct_str = f"{fuel_pct:.1f}"
         else:
             fuel_pct_str = "N/A"
+        
+        fuel_consumption_str = f"{fuel_consumption_rate:.2f}" if fuel_consumption_rate is not None else "N/A"
 
         # Update UI
         self.value_labels["Altitude (m)"].setText(f"{altitude:.2f}")
@@ -108,8 +117,11 @@ class TelemetryPanel(QWidget):
         self.value_labels["Orientation (Pitch, Roll, Yaw) (°)"].setText(orient_str)
         self.value_labels["Angular Velocity (°/s)"].setText(f"{ang_vel:.2f}")
         self.value_labels["Total Mass (kg)"].setText(total_mass_str)
+        self.value_labels["Dry Mass (kg)"].setText(dry_mass_str)
         self.value_labels["Fuel Remaining (kg)"].setText(fuel_kg_str)
+        self.value_labels["Fuel Capacity (kg)"].setText(fuel_capacity_str)
         self.value_labels["Fuel Remaining (%)"].setText(fuel_pct_str)
+        self.value_labels["Fuel Consumption Rate (kg/s)"].setText(fuel_consumption_str)
 
         # Save previous sample
         self._prev_time = t
