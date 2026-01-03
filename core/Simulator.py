@@ -70,11 +70,12 @@ class Simulator:
             return gravity_fn(self.lander.position[1])
         return getattr(self.planet, "gravity", 9.81)
     
-    def _allocate_thrust_from_controller(self, dt: float, gravity: float, 
+    def _allocate_thrust_from_controller(self, dt: float, gravity: float,
                                          thrust_vector: np.ndarray) -> np.ndarray:
         """Allocate thrust based on controller output."""
         vertical_velocity = float(self.lander.velocity[1])
-        desired_accel = float(self.controller.update(vertical_velocity, dt))
+        altitude = float(self.lander.position[1])
+        desired_accel = float(self.controller.update(vertical_velocity, dt, altitude))
         return self.thrust_manager.allocate_from_controller(desired_accel, gravity, thrust_vector)
 
     def get_telemetry(self):

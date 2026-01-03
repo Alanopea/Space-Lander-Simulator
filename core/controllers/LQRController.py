@@ -16,7 +16,7 @@ class LQRController(IController):
     """
 
     def __init__(self, Q: np.ndarray = None, R: np.ndarray = None, setpoint: float = -10.0,
-                 tol: float = 1e-6, max_iter: int = 200):
+                 tol: float = 1e-6, max_iter: int = 200, activation_altitude: float = 500.0):
         # default cost matrices if not provided
         if Q is None:
             Q = np.diag([0.01, 200.0])   # penalize velocity more moderately; tune as needed
@@ -34,6 +34,7 @@ class LQRController(IController):
 
         self.tol = float(tol)
         self.max_iter = int(max_iter)
+        self.activation_altitude = float(activation_altitude)
 
         # compute optimal K
         self.K = self._compute_lqr_gain()
@@ -87,7 +88,7 @@ class LQRController(IController):
         self.pos_est = 0.0
         self.vel_est = 0.0
 
-    def update(self, measurement, dt: float) -> float:
+    def update(self, measurement, dt: float, altitude: float = 0.0) -> float:
         # measurement expected to be vertical velocity (m/s)
         try:
             vel = float(measurement)

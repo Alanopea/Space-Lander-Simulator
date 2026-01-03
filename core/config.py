@@ -1,10 +1,10 @@
 # Centralized simulation defaults (controller, PID params, initial altitude)
 
 DEFAULT_CONTROLLER_KIND = "mpc"   # "lqr" | "pid" | "mpc"
-INITIAL_ALTITUDE = 1000.0        # meters (used by Dashboard / main entry)
+INITIAL_ALTITUDE = 10000.0        # meters (used by Dashboard / main entry)
 
 # Centralized setpoint and initial velocity
-LANDING_SETPOINT = -5.0          # desired vertical velocity at touchdown (m/s, negative = descending)
+LANDING_SETPOINT = -0.5          # desired vertical velocity at touchdown (m/s, negative = descending)
 INITIAL_VELOCITY = -100.0         # starting vertical velocity (m/s) (positive = up)
 
 # Velocity limits (safety/operational constraints)
@@ -25,7 +25,8 @@ PID_DEFAULTS = {
     "ki": 0.01,  # Integral gain - very small to prevent overshoot while maintaining setpoint
     "kd": 3.0,  # Derivative gain - provides damping to prevent oscillation
     "setpoint": LANDING_SETPOINT,  # Target vertical velocity (maintained continuously)
-    "output_limits": None #(-10.0, 5.0)  # Acceleration limits (m/s^2) - upper limit prevents zero thrust
+    "output_limits": (-10.0, 5.0),  # Acceleration limits (m/s^2) - upper limit prevents zero thrust
+    "activation_altitude": 500.0  # Controller activates below this altitude (m)
 }
 
 # LQR defaults (used if controller kind == "lqr")
@@ -33,7 +34,8 @@ PID_DEFAULTS = {
 LQR_DEFAULTS = {
     "Q": None,  # Use LQRController internal defaults
     "R": None,  # Use LQRController internal defaults
-    "setpoint": LANDING_SETPOINT  # Target vertical velocity (maintained continuously)
+    "setpoint": LANDING_SETPOINT,  # Target vertical velocity (maintained continuously)
+    "activation_altitude": 500.0  # Controller activates below this altitude (m)
 }
 
 # MPC defaults (used if controller kind == "mpc")
@@ -44,7 +46,9 @@ MPC_DEFAULTS = {
     "Q": None,  # Use MPCController internal defaults
     "R": None,  # Use MPCController internal defaults
     "output_limits": (-50.0, 20.0),  # Acceleration limits (m/s²)
-    "dt_nom": 0.1  # Nominal time step for discretization (s)
+    "dt_nom": 0.1,  # Nominal time step for discretization (s)
+    "activation_altitude": 1000.0,  # Controller activates below this altitude (m)
+    "gravity": 9.81  # Gravity acceleration (m/s²)
 }
 
 def make_default_controller():
