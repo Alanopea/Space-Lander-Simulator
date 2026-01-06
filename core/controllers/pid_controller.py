@@ -35,19 +35,14 @@ class PIDController(IController):
         """
         Update controller with new measurement.
 
-        Controller activates only below activation altitude for fair comparison with MPC.
-
         Args:
             measurement: Current velocity (m/s)
             dt: Time step (s)
-            altitude: Current altitude (m) - used for activation logic
+            altitude: Current altitude (m) - optional, for compatibility
 
         Returns:
-            Desired acceleration (m/s^2) - 0 if controller inactive
+            Desired acceleration (m/s^2)
         """
-        # Activation logic: controller inactive above activation altitude
-        if altitude > self.activation_altitude:
-            return 0.0  # No control action
         if dt <= 0.0:
             dt = 1e-6  # Avoid division by zero
         

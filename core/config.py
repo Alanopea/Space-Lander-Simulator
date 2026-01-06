@@ -1,16 +1,16 @@
 # Centralized simulation defaults (controller, PID params, initial altitude)
 
-DEFAULT_CONTROLLER_KIND = "mpc"   # "lqr" | "pid" | "mpc"
-INITIAL_ALTITUDE = 10000.0        # meters (used by Dashboard / main entry)
+DEFAULT_CONTROLLER_KIND = "pid"   # "lqr" | "pid" | "mpc"
+INITIAL_ALTITUDE = 500.0        # meters (used by Dashboard / main entry)
 
 # Centralized setpoint and initial velocity
-LANDING_SETPOINT = -0.5          # desired vertical velocity at touchdown (m/s, negative = descending)
-INITIAL_VELOCITY = -100.0         # starting vertical velocity (m/s) (positive = up)
+LANDING_SETPOINT = -5.0          # desired vertical velocity at touchdown (m/s, negative = descending)
+INITIAL_VELOCITY = -50.0         # starting vertical velocity (m/s) (positive = up)
 
 # Velocity limits (safety/operational constraints)
 # Controllers maintain setpoint continuously until landing - these are maximum allowed velocities
 MAX_VERTICAL_VELOCITY = -5050.0    # Maximum descent velocity (m/s, negative = descending)
-MIN_VERTICAL_VELOCITY = -0.2      # Minimum descent velocity (m/s, for safety margins)
+MIN_VERTICAL_VELOCITY = -3.0      # Minimum descent velocity (m/s, for safety margins)
 MAX_HORIZONTAL_VELOCITY = 0.0    # Maximum horizontal velocity magnitude (m/s)
 
 # PID defaults (used if controller kind == "pid")

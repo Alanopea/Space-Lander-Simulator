@@ -248,9 +248,6 @@ class MPCController(IController):
         Returns:
             Desired acceleration (m/s²) - 0 if controller inactive
         """
-        # Activation logic: controller inactive above activation altitude
-        if altitude > self.activation_altitude:
-            return 0.0  # No control action
 
         if dt <= 0.0:
             dt = 1e-6
