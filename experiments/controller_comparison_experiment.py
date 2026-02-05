@@ -20,6 +20,9 @@ Plots:
 
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from core.EnvironmentManager import EnvironmentManager
 from core.Simulator import Simulator
@@ -198,9 +201,14 @@ class SimpleControllerExperiment:
         ax.legend()
         ax.grid(True)
 
-        plt.tight_layout()
+        save_dir = "experiments/comparison_results"
+        os.makedirs(save_dir, exist_ok=True)  # create save folder if it doesn't exist
+
         filename = f"controller_comparison_{planet_name.lower()}.png"
-        plt.savefig(filename, dpi=300)
+        filepath = os.path.join(save_dir, filename)
+
+        plt.tight_layout()
+        plt.savefig(filepath, dpi=300)
         plt.close(fig)
 
 

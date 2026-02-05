@@ -56,7 +56,7 @@ class Lander3DPanel(QWidget):
 
         # Subtle grey grid on the ground plane
         self.grid = gl.GLGridItem()
-        self.grid.setSize(40, 40)
+        self.grid.setSize(500, 500)
         self.grid.setSpacing(2, 2)
         try:
             self.grid.setColor((80, 80, 80, 255))
@@ -115,7 +115,15 @@ class Lander3DPanel(QWidget):
             ori = self._last_orientation
 
         self._last_orientation = ori
-        self._lander_world_y = max(0.0, altitude_m * self._scale_geom)
+
+        # Map simulator altitude (which is the lander COM height above ground)
+        # so that y=0 in the view corresponds to the *bottom* of the lander,
+        # not its center. When altitude_m == 0, the bottom of the cuboid sits
+        # exactly on the ground plane.
+        h_world = float(self._lander_dims[1]) * self._scale_geom
+        half_h = h_world / 2.0
+        # World-space COM height: ground (0) + half height + scaled altitude
+        self._lander_world_y = max(half_h, altitude_m * self._scale_geom + half_h)
 
         self._update_lander_geometry(ori)
 
