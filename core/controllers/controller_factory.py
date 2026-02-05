@@ -27,13 +27,15 @@ def make_controller(kind: str, **kwargs):
             ki=kwargs.get("ki"),
             kd=kwargs.get("kd"),
             setpoint=kwargs.get("setpoint"),
-            output_limits=kwargs.get("output_limits")
+            output_limits=kwargs.get("output_limits"),
+            activation_altitude=kwargs.get("activation_altitude", 500.0)
         )
     elif kind == "lqr":
         return LQRController(
             Q=kwargs.get("Q"),
             R=kwargs.get("R"),
-            setpoint=kwargs.get("setpoint")
+            setpoint=kwargs.get("setpoint"),
+            activation_altitude=kwargs.get("activation_altitude", 500.0)
         )
     elif kind == "mpc":
         return MPCController(
@@ -42,7 +44,9 @@ def make_controller(kind: str, **kwargs):
             Q=kwargs.get("Q"),
             R=kwargs.get("R"),
             output_limits=kwargs.get("output_limits"),
-            dt_nom=kwargs.get("dt_nom")
+            dt_nom=kwargs.get("dt_nom"),
+            activation_altitude=kwargs.get("activation_altitude", 500.0),
+            gravity=kwargs.get("gravity", 9.81)
         )
     else:
         raise ValueError(f"Unknown controller kind: {kind}. Must be 'lqr', 'pid', or 'mpc'")

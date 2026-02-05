@@ -5,12 +5,12 @@ INITIAL_ALTITUDE = 1000.0        # meters (used by Dashboard / main entry)
 
 # Centralized setpoint and initial velocity
 LANDING_SETPOINT = -5.0          # desired vertical velocity at touchdown (m/s, negative = descending)
-INITIAL_VELOCITY = -100.0         # starting vertical velocity (m/s) (positive = up)
+INITIAL_VELOCITY = -50.0         # starting vertical velocity (m/s) (positive = up)
 
 # Velocity limits (safety/operational constraints)
 # Controllers maintain setpoint continuously until landing - these are maximum allowed velocities
 MAX_VERTICAL_VELOCITY = -5050.0    # Maximum descent velocity (m/s, negative = descending)
-MIN_VERTICAL_VELOCITY = -0.2      # Minimum descent velocity (m/s, for safety margins)
+MIN_VERTICAL_VELOCITY = -3.0      # Minimum descent velocity (m/s, for safety margins)
 MAX_HORIZONTAL_VELOCITY = 0.0    # Maximum horizontal velocity magnitude (m/s)
 
 # PID defaults (used if controller kind == "pid")
@@ -25,7 +25,8 @@ PID_DEFAULTS = {
     "ki": 0.01,  # Integral gain - very small to prevent overshoot while maintaining setpoint
     "kd": 3.0,  # Derivative gain - provides damping to prevent oscillation
     "setpoint": LANDING_SETPOINT,  # Target vertical velocity (maintained continuously)
-    "output_limits": None #(-10.0, 5.0)  # Acceleration limits (m/s^2) - upper limit prevents zero thrust
+    "output_limits": (-10.0, 5.0),  # Acceleration limits (m/s^2) - upper limit prevents zero thrust
+    "activation_altitude": 500.0  # Controller activates below this altitude (m)
 }
 
 # LQR defaults (used if controller kind == "lqr")
@@ -33,7 +34,8 @@ PID_DEFAULTS = {
 LQR_DEFAULTS = {
     "Q": None,  # Use LQRController internal defaults
     "R": None,  # Use LQRController internal defaults
-    "setpoint": LANDING_SETPOINT  # Target vertical velocity (maintained continuously)
+    "setpoint": LANDING_SETPOINT,  # Target vertical velocity (maintained continuously)
+    "activation_altitude": 500.0  # Controller activates below this altitude (m)
 }
 
 # MPC defaults (used if controller kind == "mpc")
@@ -44,7 +46,9 @@ MPC_DEFAULTS = {
     "Q": None,  # Use MPCController internal defaults
     "R": None,  # Use MPCController internal defaults
     "output_limits": (-50.0, 20.0),  # Acceleration limits (m/s²)
-    "dt_nom": 0.1  # Nominal time step for discretization (s)
+    "dt_nom": 0.1,  # Nominal time step for discretization (s)
+    "activation_altitude": 1000.0,  # Controller activates below this altitude (m)
+    "gravity": 9.81  # Gravity acceleration (m/s²)
 }
 
 def make_default_controller():

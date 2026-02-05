@@ -13,6 +13,7 @@ from UI.panels.simulation_panel_UI import SimulationPanel
 
 # Engine panel import
 from UI.panels.EnginePanelUI import EnginePanel
+from UI.panels.lander_3d_panel_UI import Lander3DPanel
 
 import numpy as np
 
@@ -28,6 +29,7 @@ class Dashboard(QWidget):
         self.emergency_panel = EmergencyPanel()
         self.radar_panel = RadarPanel(self)
         self.telemetry_panel = TelemetryPanel(self)
+        self.lander_3d_panel = Lander3DPanel(self)
 
         # Layouts
         # store top_layout so controls can be inserted into it later
@@ -42,7 +44,8 @@ class Dashboard(QWidget):
         right_dock.setContentsMargins(0, 0, 35, 35)
 
         bottom_layout = QHBoxLayout()
-        bottom_layout.addWidget(self.radar_panel, 3)
+        bottom_layout.addWidget(self.radar_panel, 2)
+        bottom_layout.addWidget(self.lander_3d_panel, 3)
         bottom_layout.addLayout(right_dock, 0)
 
         self.main_layout = QVBoxLayout()
@@ -57,13 +60,15 @@ class Dashboard(QWidget):
         self.sim_worker = None
         self.simulator_wrapper = None  # StepSimulator instance
         self._controls = None  # will hold SimulationPanel instance when connected
+        self._last_time = None
+        self._last_velocity = None
 
         # Engine panel (top-right). Create once and hide until simulation provides a lander
         self.engine_panel = EnginePanel(lander=None, parent=self)
         self.engine_panel.hide()
 
     def resizeEvent(self, event):
-        # keep engine panel anchored to top-right when window resizes
+        # keep floating/overlay panels anchored when window resizes
         try:
             if self.engine_panel and self.engine_panel.isVisible():
                 x = max(10, self.width() - self.engine_panel.width() - 20)
@@ -127,9 +132,15 @@ class Dashboard(QWidget):
         except Exception:
             pass
 
-        # set radar dimensions if available
+        # set radar and 3D lander dimensions if available
         try:
-            self.radar_panel.set_lander_dimensions(self.simulator_wrapper.simulator.lander.dimensions)
+            lander = self.simulator_wrapper.simulator.lander
+            self.radar_panel.set_lander_dimensions(lander.dimensions)
+            # Configure 3D panel geometry and engine layout
+            self.lander_3d_panel.set_lander_dimensions(lander.dimensions)
+            engine_positions = [e.position for e in getattr(lander, "engines", [])]
+            if engine_positions:
+                self.lander_3d_panel.set_engine_layout(engine_positions)
         except Exception:
             pass
 
@@ -223,6 +234,32 @@ class Dashboard(QWidget):
             fuel_consumption_rate=fuel_consumption_rate,
             dry_mass=dry_mass
         )
+
+        # ---------------- 3D LANDER VISUALIZATION ----------------
+
+        # Altitude (lander will actually move toward ground in panel)
+        try:
+            altitude = float(pos[1]) if pos is not None else 0.0
+        except Exception:
+            altitude = 0.0
+
+        # Always start with zeroed total forces
+        forces = {
+            "thrust": np.zeros(3, dtype=float),
+            "gravity": np.zeros(3, dtype=float),
+            "drag": np.zeros(3, dtype=float),
+        }
+        # --- PANEL UPDATE ------------------------------------------
+        try:
+            if self.lander_3d_panel is not None and self.lander_3d_panel.is_enabled():
+                self.lander_3d_panel.update_scene(
+                    altitude_m=altitude,
+                    orientation_rad=ori,
+                    forces=forces,
+                )
+        except Exception:
+            pass
+
 
         # refresh engine panel visuals if visible
         try:

@@ -5,11 +5,13 @@ class PIDController(IController):
     """Scalar PID controller with optional output limits and anti-windup."""
 
     def __init__(self, kp: float, ki: float, kd: float, setpoint: float = 0.0,
-                 output_limits: Optional[Tuple[float, float]] = None):
+                 output_limits: Optional[Tuple[float, float]] = None,
+                 activation_altitude: float = 500.0):
         self.kp = float(kp)
         self.ki = float(ki)
         self.kd = float(kd)
         self.setpoint = float(setpoint)
+        self.activation_altitude = float(activation_altitude)
 
         self.integral = 0.0
         self.prev_error = 0.0
@@ -29,16 +31,17 @@ class PIDController(IController):
             return hi
         return v
 
-    def update(self, measurement: float, dt: float) -> float:
+    def update(self, measurement: float, dt: float, altitude: float = 0.0) -> float:
         """
         Update controller with new measurement.
-        
+
         Args:
             measurement: Current velocity (m/s)
             dt: Time step (s)
-            
+            altitude: Current altitude (m) - optional, for compatibility
+
         Returns:
-            Desired acceleration (m/s^2) - negative means need more thrust
+            Desired acceleration (m/s^2)
         """
         if dt <= 0.0:
             dt = 1e-6  # Avoid division by zero
