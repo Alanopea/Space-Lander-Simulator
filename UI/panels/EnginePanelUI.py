@@ -6,7 +6,7 @@ import math
 class EnginePanel(QWidget):
     def __init__(self, lander=None, parent=None):
         super().__init__(parent)
-        self.setFixedSize(350, 350)
+        self.setFixedSize(550, 350)
         self.lander = lander
 
         # Info labels (below visualization)
@@ -16,9 +16,9 @@ class EnginePanel(QWidget):
         for lbl in (self.lbl_active, self.lbl_total, self.lbl_per_engine):
             lbl.setStyleSheet("color: white; font-family: 'Helvetica';")
             lbl.setWordWrap(True)
-        self.lbl_active.move(14, 245)
-        self.lbl_total.move(14, 265)
-        self.lbl_per_engine.setGeometry(14, 285, 230, 50)
+        #self.lbl_active.move(14, 245)
+        #self.lbl_total.move(14, 265)
+        self.lbl_per_engine.setGeometry(14, 285, 500, 60)
 
         # Fonts and base style
         self._title_font = QFont("Helvetica", 13, QFont.Bold)
@@ -35,7 +35,7 @@ class EnginePanel(QWidget):
         engines = self.lander.engines
         active = sum(1 for e in engines if getattr(e, "enabled", True))
         total = sum(float(getattr(e, "current_thrust", 0.0)) for e in engines)
-        per = [float(getattr(e, "current_thrust", 0.0)) for e in engines]
+        per = [float(getattr(e, "current_thrust", 0)) for e in engines]
         self.lbl_per_engine.setText("Per-engine: " + ", ".join(f"{t:.0f}N" for t in per))
         self.update()
 
@@ -52,7 +52,7 @@ class EnginePanel(QWidget):
         # --- Title ---
         p.setFont(self._title_font)
         p.setPen(QColor(230, 230, 230))
-        p.drawText(QRectF(0, 8, self.width(), 24), Qt.AlignCenter, "Engine Panel")
+        p.drawText(QRectF(0, 8, self.width(), 50), Qt.AlignCenter, "Engine Panel")
 
         # --- Visualization center ---
         vis_left = 18
@@ -191,8 +191,8 @@ class EnginePanel(QWidget):
                 p.drawEllipse(QRectF(x - icon_r, y - icon_r, 2.0 * icon_r, 2.0 * icon_r))
 
         # --- Power bar ---
-        bar_x = vis_left + vis_w + 20
-        bar_y = vis_top
+        bar_x = vis_left + vis_w + 100
+        bar_y = vis_top + 20
         bar_w = 28
         bar_h = vis_h
         p.setPen(QPen(QColor(100, 100, 110), 1))

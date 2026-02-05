@@ -6,9 +6,9 @@ class TelemetryPanel(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         # 900px wide, 300px tall (horizontal x vertical)
-        self.setFixedSize(900, 300)
+        self.setFixedSize(600, 500)
         # place 30px from left, 200px from top of dashboard
-        self.move(30, 200)
+        #self.move(30, 200)
 
         grid = QGridLayout()
         grid.setContentsMargins(12, 12, 12, 12)

@@ -47,7 +47,7 @@ class EmergencyButton(QPushButton):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self._toggle)
         self._cycle = itertools.cycle([True, False])
-        self.setFixedSize(100, 42)
+        self.setFixedSize(150, 42)
 
         self._base_css = (
             "background-color: #000; font-weight: 700; border-radius: 6px; "

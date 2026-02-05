@@ -56,8 +56,8 @@ class Lander3DPanel(QWidget):
 
         # Subtle grey grid on the ground plane
         self.grid = gl.GLGridItem()
-        self.grid.setSize(500, 500)
-        self.grid.setSpacing(2, 2)
+        self.grid.setSize(2000, 2000)
+        self.grid.setSpacing(10, 10)
         try:
             self.grid.setColor((80, 80, 80, 255))
         except Exception:

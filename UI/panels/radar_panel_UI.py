@@ -8,7 +8,7 @@ class RadarPanel(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setFixedSize(600, 450)
-        self.move(35, parent.height() - 450 - 35)  # anchored bottom-left
+        #self.move(35, parent.height() - 450 - 35)  # anchored bottom-left
 
         layout = QVBoxLayout()
         self.setLayout(layout)
