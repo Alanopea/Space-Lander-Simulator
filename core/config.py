@@ -1,7 +1,7 @@
 # Centralized simulation defaults (controller, PID params, initial altitude)
 
-DEFAULT_CONTROLLER_KIND = "pid"   # "lqr" | "pid" | "mpc"
-INITIAL_ALTITUDE = 500.0        # meters (used by Dashboard / main entry)
+DEFAULT_CONTROLLER_KIND = "mpc"   # "lqr" | "pid" | "mpc"
+INITIAL_ALTITUDE = 1000.0        # meters (used by Dashboard / main entry)
 
 # Centralized setpoint and initial velocity
 LANDING_SETPOINT = -5.0          # desired vertical velocity at touchdown (m/s, negative = descending)

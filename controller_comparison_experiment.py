@@ -160,7 +160,7 @@ class SimpleControllerExperiment:
         ax = axs[0, 0]
         for name, data in results.items():
             ax.plot(data["time"], data["velocity"], label=name)
-        ax.plot(reference[0], reference[1], "k--", label="Ideal reference")
+        #ax.plot(reference[0], reference[1], "k--", label="Ideal reference")
         ax.set_ylabel("Vertical velocity (m/s)")
         ax.set_xlabel("Time (s)")
         ax.set_title("Velocity vs Time")
@@ -171,7 +171,7 @@ class SimpleControllerExperiment:
         ax = axs[0, 1]
         for name, data in results.items():
             ax.plot(data["time"], data["altitude"], label=name)
-        ax.plot(reference[0], reference[2], "k--", label="Ideal reference")
+        #ax.plot(reference[0], reference[2], "k--", label="Ideal reference")
         ax.set_ylabel("Altitude (m)")
         ax.set_xlabel("Time (s)")
         ax.set_title("Altitude vs Time")

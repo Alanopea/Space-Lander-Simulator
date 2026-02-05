@@ -23,8 +23,8 @@ class Simulator:
             self.lander = lander_instance
         else:
             if lander_class is None:
-                from core.Landers.Falcon9Booster import Falcon9Booster
-                lander_class = Falcon9Booster
+                from core.Landers.MoonLander import MoonLander
+                lander_class = MoonLander
             self.lander = lander_class(planet)
 
         # place at initial altitude
