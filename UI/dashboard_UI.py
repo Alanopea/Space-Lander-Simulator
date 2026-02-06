@@ -10,7 +10,8 @@ from UI.panels.EnginePanelUI import EnginePanel
 from UI.panels.lander_3d_panel_UI import Lander3DPanel
 
 from core.EnvironmentManager import EnvironmentManager
-from core.config import make_default_controller, get_initial_altitude, get_initial_velocity
+from core.LanderManager import LanderManager
+from core.config import make_controller_by_kind, get_initial_altitude, get_initial_velocity
 from ui_integration.step_simulator import StepSimulator
 from ui_integration.simulation_worker import SimulationWorker
 
@@ -67,6 +68,7 @@ class Dashboard(QWidget):
 
         # Simulation / env
         self.env_manager = EnvironmentManager()
+        self.lander_manager = LanderManager()
         self.sim_thread = None
         self.sim_worker = None
         self.simulator_wrapper = None
@@ -100,17 +102,46 @@ class Dashboard(QWidget):
         controls.stopRequested.connect(self.stop_simulation)
 
     # ---------- SIMULATION ----------
-    def start_simulation(self, planet_name: str = None):
+    def start_simulation(self, config=None):
+        """
+        Start simulation with configuration.
+        
+        Args:
+            config: Dict with 'planet', 'lander', 'controller' keys, or None for defaults
+        """
         if self.sim_worker is not None:
             return
 
+        # Handle both old (str) and new (dict) signal formats for backward compatibility
+        if isinstance(config, str):
+            # Legacy: planet_name as string
+            planet_name = config
+            lander_name = None
+            controller_kind = None
+        elif isinstance(config, dict):
+            planet_name = config.get('planet')
+            lander_name = config.get('lander')
+            controller_kind = config.get('controller')
+        else:
+            # Defaults
+            planet_name = None
+            lander_name = None
+            controller_kind = None
+
+        # Get planet
         planet = (
             self.env_manager.get_planet(planet_name)
             if planet_name
             else self.env_manager.get_planet(self.env_manager.list_planets()[0])
         )
 
-        controller = make_default_controller()
+        # Get lander class
+        lander_class = None
+        if lander_name:
+            lander_class = self.lander_manager.get_lander_class(lander_name)
+        
+        # Get controller
+        controller = make_controller_by_kind(controller_kind)
 
         # Get planet-specific initial conditions (with fallback to defaults)
         initial_altitude = get_initial_altitude(planet)
@@ -133,7 +164,8 @@ class Dashboard(QWidget):
             planet,
             controller=controller,
             initial_altitude=initial_altitude,
-            initial_velocity=initial_velocity
+            initial_velocity=initial_velocity,
+            lander_class=lander_class
         )
 
         # Engine panel attach

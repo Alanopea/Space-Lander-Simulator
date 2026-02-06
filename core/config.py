@@ -83,19 +83,38 @@ def get_initial_velocity(planet=None):
     return INITIAL_VELOCITY
 
 
+def make_controller_by_kind(kind=None):
+    """
+    Create a controller by kind. If kind is None, uses DEFAULT_CONTROLLER_KIND.
+    Uses centralized defaults from PID_DEFAULTS, LQR_DEFAULTS, or MPC_DEFAULTS.
+    
+    Args:
+        kind: Controller kind ("pid", "lqr", "mpc") or None for default
+    
+    Returns:
+        IController: Configured controller instance
+    """
+    from core.controllers.controller_factory import make_controller
+    
+    if kind is None:
+        kind = DEFAULT_CONTROLLER_KIND
+    
+    kind = kind.strip().lower() if kind else DEFAULT_CONTROLLER_KIND
+    
+    if kind == "pid":
+        return make_controller(kind="pid", **PID_DEFAULTS)
+    elif kind == "lqr":
+        return make_controller(kind="lqr", **LQR_DEFAULTS)
+    elif kind == "mpc":
+        return make_controller(kind="mpc", **MPC_DEFAULTS)
+    else:
+        # Fallback to default if unknown
+        return make_controller_by_kind(DEFAULT_CONTROLLER_KIND)
+
+
 def make_default_controller():
     """
     Create the default controller according to DEFAULT_CONTROLLER_KIND.
     Uses centralized defaults from PID_DEFAULTS, LQR_DEFAULTS, or MPC_DEFAULTS.
     """
-    from core.controllers.controller_factory import make_controller
-    
-    if DEFAULT_CONTROLLER_KIND == "pid":
-        return make_controller(kind="pid", **PID_DEFAULTS)
-    elif DEFAULT_CONTROLLER_KIND == "lqr":
-        return make_controller(kind="lqr", **LQR_DEFAULTS)
-    elif DEFAULT_CONTROLLER_KIND == "mpc":
-        return make_controller(kind="mpc", **MPC_DEFAULTS)
-    else:
-        # Fallback to LQR if unknown
-        return make_controller(kind="lqr", **LQR_DEFAULTS)
+    return make_controller_by_kind(None)
