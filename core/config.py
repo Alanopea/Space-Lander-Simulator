@@ -1,11 +1,11 @@
 # Centralized simulation defaults (controller, PID params, initial altitude)
 
-DEFAULT_CONTROLLER_KIND = "pid"   # "lqr" | "pid" | "mpc"
-INITIAL_ALTITUDE = 1000.0        # meters (used by Dashboard / main entry)
+DEFAULT_CONTROLLER_KIND = "mpc"   # "lqr" | "pid" | "mpc"
+INITIAL_ALTITUDE = 1000.0        # meters (fallback default, used when planet doesn't specify)
+INITIAL_VELOCITY = -20.0         # starting vertical velocity (m/s) (fallback default, used when planet doesn't specify)
 
 # Centralized setpoint and initial velocity
-LANDING_SETPOINT = -5.0          # desired vertical velocity at touchdown (m/s, negative = descending)
-INITIAL_VELOCITY = -50.0         # starting vertical velocity (m/s) (positive = up)
+LANDING_SETPOINT = -2.0          # desired vertical velocity at touchdown (m/s, negative = descending)
 
 # Velocity limits (safety/operational constraints)
 # Controllers maintain setpoint continuously until landing - these are maximum allowed velocities
@@ -50,6 +50,38 @@ MPC_DEFAULTS = {
     "activation_altitude": 1000.0,  # Controller activates below this altitude (m)
     "gravity": 9.81  # Gravity acceleration (m/s²)
 }
+
+def get_initial_altitude(planet=None):
+    """
+    Get initial altitude for a planet. Returns planet-specific value if available,
+    otherwise returns the default fallback value.
+    
+    Args:
+        planet: Planet instance (optional)
+    
+    Returns:
+        float: Initial altitude in meters
+    """
+    if planet is not None and hasattr(planet, 'initial_altitude') and planet.initial_altitude is not None:
+        return planet.initial_altitude
+    return INITIAL_ALTITUDE
+
+
+def get_initial_velocity(planet=None):
+    """
+    Get initial velocity for a planet. Returns planet-specific value if available,
+    otherwise returns the default fallback value.
+    
+    Args:
+        planet: Planet instance (optional)
+    
+    Returns:
+        float: Initial velocity in m/s
+    """
+    if planet is not None and hasattr(planet, 'initial_velocity') and planet.initial_velocity is not None:
+        return planet.initial_velocity
+    return INITIAL_VELOCITY
+
 
 def make_default_controller():
     """

@@ -10,7 +10,7 @@ from UI.panels.EnginePanelUI import EnginePanel
 from UI.panels.lander_3d_panel_UI import Lander3DPanel
 
 from core.EnvironmentManager import EnvironmentManager
-from core.config import make_default_controller, INITIAL_ALTITUDE, INITIAL_VELOCITY
+from core.config import make_default_controller, get_initial_altitude, get_initial_velocity
 from ui_integration.step_simulator import StepSimulator
 from ui_integration.simulation_worker import SimulationWorker
 
@@ -112,15 +112,22 @@ class Dashboard(QWidget):
 
         controller = make_default_controller()
 
+        # Get planet-specific initial conditions (with fallback to defaults)
+        initial_altitude = get_initial_altitude(planet)
+        initial_velocity = get_initial_velocity(planet)
+        
+        # Allow UI controls to override planet defaults if present
         try:
-            initial_altitude = float(getattr(self._controls, "initial_altitude", INITIAL_ALTITUDE))
+            if hasattr(self._controls, "initial_altitude"):
+                initial_altitude = float(self._controls.initial_altitude)
         except Exception:
-            initial_altitude = INITIAL_ALTITUDE
+            pass
 
         try:
-            initial_velocity = float(getattr(self._controls, "initial_velocity", INITIAL_VELOCITY))
+            if hasattr(self._controls, "initial_velocity"):
+                initial_velocity = float(self._controls.initial_velocity)
         except Exception:
-            initial_velocity = INITIAL_VELOCITY
+            pass
 
         self.simulator_wrapper = StepSimulator(
             planet,
