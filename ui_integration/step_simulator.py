@@ -3,7 +3,7 @@ from ui_integration.interfaces import ISimulator
 from core.Simulator import Simulator
 from core.config import INITIAL_VELOCITY
 class StepSimulator(ISimulator):
-    def __init__(self, planet, controller=None, initial_altitude=1000.0, initial_velocity=INITIAL_VELOCITY, lander_class=None, lander_instance=None):
+    def __init__(self, planet, controller=None, initial_altitude=1000.0, initial_velocity=INITIAL_VELOCITY, lander_class=None, lander_instance=None, emergency_scenario_config=None):
         """
         Adapter that exposes a simple step/reset/get_logger interface for the UI.
         Keeps its own initial_altitude so reset() returns to the same start state.
@@ -16,7 +16,8 @@ class StepSimulator(ISimulator):
             initial_altitude=self.initial_altitude,
             initial_velocity=self.initial_velocity,
             lander_class=lander_class,
-            lander_instance=lander_instance
+            lander_instance=lander_instance,
+            emergency_scenario_config=emergency_scenario_config
         )
         self.time = 0.0
         self.finished = False

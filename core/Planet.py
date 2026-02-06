@@ -31,7 +31,7 @@ earth = Planet(
     air_density=1.225,
     mass=5.972e24,
     radius=6.371e6,
-    initial_altitude=2500.0,
+    initial_altitude=1500.0,
     initial_velocity=-130.0
 )
 

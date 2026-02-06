@@ -1,10 +1,11 @@
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QComboBox, QLabel, QPushButton, QGroupBox
 from PyQt5.QtCore import pyqtSignal, Qt
 from core.LanderManager import LanderManager
+from core.emergencies.EmergencyScenarioManager import EmergencyScenarioManager
 
 class SimulationPanel(QWidget):
     # Signals:
-    # startRequested: emits dict with 'planet', 'lander', 'controller' keys
+    # startRequested: emits dict with 'planet', 'lander', 'controller', 'emergency_scenario' keys
     startRequested = pyqtSignal(dict)
     # pauseToggled: emits True if pause requested, False if resume requested
     pauseToggled = pyqtSignal(bool)
@@ -15,6 +16,7 @@ class SimulationPanel(QWidget):
         super().__init__(parent)
         self.env_manager = env_manager
         self.lander_manager = LanderManager()
+        self.emergency_scenario_manager = EmergencyScenarioManager()
 
         self.setWindowFlags(Qt.Widget)  # can be embedded or shown separately
         
@@ -23,7 +25,7 @@ class SimulationPanel(QWidget):
         main_layout.setContentsMargins(6, 6, 6, 6)
         main_layout.setSpacing(8)
 
-        # Configuration row
+        # Configuration row 1
         config_layout = QHBoxLayout()
         config_layout.setSpacing(8)
 
@@ -46,6 +48,21 @@ class SimulationPanel(QWidget):
         config_layout.addWidget(self.controller_selector)
 
         main_layout.addLayout(config_layout)
+
+        # Configuration row 2 - Emergency scenarios
+        emergency_layout = QHBoxLayout()
+        emergency_layout.setSpacing(8)
+
+        # Emergency scenario selector
+        emergency_layout.addWidget(QLabel("Emergency Scenario:"))
+        self.emergency_scenario_selector = QComboBox()
+        self.emergency_scenario_selector.addItems(self.emergency_scenario_manager.list_scenarios())
+        emergency_layout.addWidget(self.emergency_scenario_selector)
+
+        # Add stretch to push emergency scenario to the left
+        emergency_layout.addStretch()
+
+        main_layout.addLayout(emergency_layout)
 
         # Control buttons row
         button_layout = QHBoxLayout()
@@ -106,6 +123,7 @@ class SimulationPanel(QWidget):
         if not lander_name:
             lander_name = self.lander_selector.currentText().replace(" (Moon only)", "")
         controller_kind = self.controller_selector.currentText().lower()
+        emergency_scenario_name = self.emergency_scenario_selector.currentText()
         
         self._running = True
         self._paused = False
@@ -118,7 +136,8 @@ class SimulationPanel(QWidget):
         config = {
             'planet': planet_name,
             'lander': lander_name,
-            'controller': controller_kind
+            'controller': controller_kind,
+            'emergency_scenario': emergency_scenario_name
         }
         self.startRequested.emit(config)
 

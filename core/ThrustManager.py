@@ -6,9 +6,10 @@ from core.ThrustAllocator import ThrustAllocator
 class ThrustManager:
     """Manages thrust allocation for manual or controller-based scenarios."""
     
-    def __init__(self, lander):
+    def __init__(self, lander, emergency_handler=None):
         self.lander = lander
         self.thrust_allocator = ThrustAllocator(lander.engines)
+        self.emergency_handler = emergency_handler
     
     def allocate_from_controller(self, desired_accel: float, gravity: float, 
                                  thrust_vector: np.ndarray) -> np.ndarray:
@@ -84,7 +85,13 @@ class ThrustManager:
         for i, engine in enumerate(self.lander.engines):
             max_thrust = float(getattr(engine, "max_thrust", 0.0))
             if getattr(engine, "enabled", True) and max_thrust > 0.0:
-                engine.throttle = float(thrusts[i] / max_thrust)
+                desired_throttle = float(thrusts[i] / max_thrust)
+                # Apply emergency scenario modifications (e.g., response lag)
+                if self.emergency_handler:
+                    actual_throttle = self.emergency_handler.modify_throttle_command(i, desired_throttle)
+                else:
+                    actual_throttle = desired_throttle
+                engine.throttle = actual_throttle
             else:
                 engine.throttle = 0.0
     

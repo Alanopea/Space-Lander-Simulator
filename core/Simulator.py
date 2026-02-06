@@ -7,7 +7,7 @@ from core.FuelManager import FuelManager
 from core.config import make_default_controller
 
 class Simulator:
-    def __init__(self, planet, controller=None, initial_altitude=1000.0, initial_velocity=0.0, lander_class=None, lander_instance=None):
+    def __init__(self, planet, controller=None, initial_altitude=1000.0, initial_velocity=0.0, lander_class=None, lander_instance=None, emergency_scenario_config=None):
         self.planet = planet
 
         # If no controller provided, build default via factory (default = LQR)
@@ -34,8 +34,15 @@ class Simulator:
         self.physics = PhysicsEngine(self.lander)
         self.logger = DataLogger()
 
+        # Emergency scenario handler (created before managers so they can reference it)
+        if emergency_scenario_config:
+            from core.emergencies.EmergencyScenarioHandler import EmergencyScenarioHandler
+            self.emergency_handler = EmergencyScenarioHandler(self.lander, emergency_scenario_config)
+        else:
+            self.emergency_handler = None
+        
         # Managers for separation of concerns
-        self.thrust_manager = ThrustManager(self.lander)
+        self.thrust_manager = ThrustManager(self.lander, self.emergency_handler)
         self.fuel_manager = FuelManager(self.lander)
 
     def step(self, dt, thrust_vector=np.array([0.0, 1.0, 0.0]), thrust_force=None):
@@ -47,6 +54,10 @@ class Simulator:
             thrust_vector: Desired thrust direction (used with controller)
             thrust_force: Manual thrust force (N) - only used if no controller
         """
+        # Update emergency handler time (for response lag scenarios)
+        if self.emergency_handler:
+            self.emergency_handler.update_time(dt)
+        
         g = self._get_gravity()
         
         # Allocate thrust (controller-based or manual)
@@ -54,6 +65,10 @@ class Simulator:
             applied_thrusts = self._allocate_thrust_from_controller(dt, g, thrust_vector)
         else:
             applied_thrusts = self.thrust_manager.allocate_manual(thrust_force)
+        
+        # Apply emergency scenario effects that override throttles (e.g., stuck engine)
+        if self.emergency_handler:
+            self.emergency_handler.apply_scenario_effects(dt)
         
         # Apply fuel constraints and consume fuel
         applied_thrusts = self.fuel_manager.consume_fuel_for_thrusts(applied_thrusts, dt)
@@ -97,6 +112,9 @@ class Simulator:
         self.thrust_manager.refresh_allocator()
         if self.controller is not None:
             self.controller.reset()
+        # Reset emergency handler
+        if self.emergency_handler:
+            self.emergency_handler.reset()
 
     def get_logger(self):
         return self.logger

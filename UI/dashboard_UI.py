@@ -11,6 +11,7 @@ from UI.panels.lander_3d_panel_UI import Lander3DPanel
 
 from core.EnvironmentManager import EnvironmentManager
 from core.LanderManager import LanderManager
+from core.emergencies.EmergencyScenarioManager import EmergencyScenarioManager
 from core.config import make_controller_by_kind, get_initial_altitude, get_initial_velocity
 from ui_integration.step_simulator import StepSimulator
 from ui_integration.simulation_worker import SimulationWorker
@@ -69,6 +70,7 @@ class Dashboard(QWidget):
         # Simulation / env
         self.env_manager = EnvironmentManager()
         self.lander_manager = LanderManager()
+        self.emergency_scenario_manager = EmergencyScenarioManager()
         self.sim_thread = None
         self.sim_worker = None
         self.simulator_wrapper = None
@@ -118,15 +120,18 @@ class Dashboard(QWidget):
             planet_name = config
             lander_name = None
             controller_kind = None
+            emergency_scenario_name = None
         elif isinstance(config, dict):
             planet_name = config.get('planet')
             lander_name = config.get('lander')
             controller_kind = config.get('controller')
+            emergency_scenario_name = config.get('emergency_scenario')
         else:
             # Defaults
             planet_name = None
             lander_name = None
             controller_kind = None
+            emergency_scenario_name = None
 
         # Get planet
         planet = (
@@ -142,6 +147,11 @@ class Dashboard(QWidget):
         
         # Get controller
         controller = make_controller_by_kind(controller_kind)
+
+        # Get emergency scenario config
+        emergency_scenario_config = None
+        if emergency_scenario_name and emergency_scenario_name != "None":
+            emergency_scenario_config = self.emergency_scenario_manager.get_scenario_config(emergency_scenario_name)
 
         # Get planet-specific initial conditions (with fallback to defaults)
         initial_altitude = get_initial_altitude(planet)
@@ -165,7 +175,8 @@ class Dashboard(QWidget):
             controller=controller,
             initial_altitude=initial_altitude,
             initial_velocity=initial_velocity,
-            lander_class=lander_class
+            lander_class=lander_class,
+            emergency_scenario_config=emergency_scenario_config
         )
 
         # Engine panel attach
