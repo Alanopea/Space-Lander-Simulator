@@ -92,6 +92,8 @@ class TelemetryPanel(QWidget):
 
         # Orientation in degrees (pitch, roll, yaw)
         orient_deg = tuple(np.degrees(ori))
+        # Normalize angles to 0-360 range
+        orient_deg = tuple(angle % 360 for angle in orient_deg)
         orient_str = f"{orient_deg[0]:.1f}°, {orient_deg[1]:.1f}°, {orient_deg[2]:.1f}°"
 
         # Mass and fuel display

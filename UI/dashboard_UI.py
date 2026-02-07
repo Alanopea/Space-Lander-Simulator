@@ -200,7 +200,12 @@ class Dashboard(QWidget):
             pass
 
         self.sim_thread = QThread()
-        self.sim_worker = SimulationWorker(self.simulator_wrapper, dt=0.1, duration=120.0)
+        self.sim_worker = SimulationWorker(
+            self.simulator_wrapper, 
+            dt=0.1, 
+            duration=120.0,
+            emergency_scenario_name=emergency_scenario_name
+        )
         self.sim_worker.moveToThread(self.sim_thread)
 
         self.sim_thread.started.connect(self.sim_worker.run)

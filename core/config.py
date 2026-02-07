@@ -5,7 +5,7 @@ INITIAL_ALTITUDE = 1000.0        # meters (fallback default, used when planet do
 INITIAL_VELOCITY = -20.0         # starting vertical velocity (m/s) (fallback default, used when planet doesn't specify)
 
 # Centralized setpoint and initial velocity
-LANDING_SETPOINT = -10.0          # desired vertical velocity at touchdown (m/s, negative = descending)
+LANDING_SETPOINT = -5.0          # desired vertical velocity at touchdown (m/s, negative = descending)
 
 # Velocity limits (safety/operational constraints)
 # Controllers maintain setpoint continuously until landing - these are maximum allowed velocities
