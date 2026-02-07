@@ -242,6 +242,11 @@ class Dashboard(QWidget):
         except Exception:
             pass
 
+        try:
+            self.emergency_panel.reset_alerts()
+        except Exception:
+            pass
+
         self.sim_worker = None
         self.sim_thread = None
         self.simulator_wrapper = None

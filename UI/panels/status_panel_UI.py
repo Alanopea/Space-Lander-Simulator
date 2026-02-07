@@ -92,5 +92,15 @@ class StatusPanel(QWidget):
 
     def update_telemetry(self, t, pos, vel, ori):
         altitude = float(pos[1])
-        status = "LANDED" if altitude <= 0 else "DESCENDING"
+        vertical_velocity = float(vel[1])
+        
+        # Check for crash: landing (altitude <= 0) with vertical velocity > 5 m/s (descending)
+        if altitude <= 0:
+            if vertical_velocity < -5.0:  # Negative because downward is negative Y
+                status = "CRASHED"
+            else:
+                status = "LANDED"
+        else:
+            status = "DESCENDING"
+        
         self.set_status(status)

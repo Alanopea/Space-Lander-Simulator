@@ -3,7 +3,7 @@ from PyQt5.QtCore import Qt, QTimer
 import itertools
 import os
 
-LOG_PATH = os.path.join(os.path.dirname(__file__), "emergency_messages.txt")
+LOG_PATH = os.path.join(os.path.dirname(__file__), "messages", "emergency_messages.txt")
 
 # ---------- Log ----------
 class EmergencyLog(QTextEdit):
@@ -116,3 +116,8 @@ class EmergencyPanel(QWidget):
             self.trigger_warning(message)
         elif level == "CAUTION":
             self.trigger_caution(message)
+
+    def reset_alerts(self):
+        """Reset all alerts and clear flashing state."""
+        self.clear_alerts()
+        self.log.setText("[SYSTEM] Emergency Log Initialized\n")
