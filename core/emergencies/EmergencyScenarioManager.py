@@ -20,17 +20,17 @@ class EmergencyScenarioManager:
                 "type": "engine_stuck",
                 "params": {"throttle": 1.0}
             },
-            "Response Lag: Mild (0.2s)": {
-                "type": "response_lag",
-                "params": {"delay": 0.2}
-            },
-            "Response Lag: Medium (0.5s)": {
-                "type": "response_lag",
-                "params": {"delay": 0.5}
-            },
-            "Response Lag: Severe (1.0s)": {
+            "Response Lag: Mild (1.0s)": {
                 "type": "response_lag",
                 "params": {"delay": 1.0}
+            },
+            "Response Lag: Medium (2.0s)": {
+                "type": "response_lag",
+                "params": {"delay": 2.0}
+            },
+            "Response Lag: Severe (5.0s)": {
+                "type": "response_lag",
+                "params": {"delay": 5.0}
             }
         }
 
