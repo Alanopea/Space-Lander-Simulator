@@ -56,8 +56,17 @@ class StepSimulator(ISimulator):
         vel = core_tel.get('velocity')
         ori = core_tel.get('orientation')
 
-        status = 'LANDED' if (pos is not None and pos[1] <= 0.0) else 'DESCENDING'
-        if status == 'LANDED':
+        # Determine status: CRASHED, LANDED, or DESCENDING
+        status = 'DESCENDING'
+        if pos is not None and pos[1] <= 0.0:
+            # Check if crashed (landing speed > 5 m/s)
+            if vel is not None and vel[1] < -5.0:
+                status = 'CRASHED'
+            else:
+                status = 'LANDED'
+        
+        # Mark finished when landed or crashed
+        if status in ('LANDED', 'CRASHED'):
             self.finished = True
 
         extras = {}

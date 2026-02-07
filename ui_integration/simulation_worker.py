@@ -43,13 +43,14 @@ class SimulationWorker(QObject):
             ori = tel['orientation']
             t = tel['time']
             extras = tel.get('extras', {})
+            status = tel.get('status', 'DESCENDING')
 
             # emit telemetry to UI
             self.telemetry.emit(t, pos, vel, ori, extras)
 
             # Alert logic
-            altitude = float(pos[1])
-            vertical_velocity = float(vel[1])
+            altitude = float(pos[1]) if pos is not None else 0.0
+            vertical_velocity = float(vel[1]) if vel is not None else 0.0
             
             # Low altitude caution
             if 0 < altitude < 100:
@@ -69,8 +70,14 @@ class SimulationWorker(QObject):
             if altitude <= 0:
                 self._ascending_warned = False
 
-            # stop if simulator says finished
-            if tel['status'] == 'LANDED':
+            # Check fuel depletion
+            fuel_mass = extras.get('fuel_mass', 0.0)
+            if fuel_mass <= 0.0:
+                self.alert.emit("WARNING", "Fuel depleted! Engine shutdown.")
+                break
+
+            # Stop if landed or crashed
+            if status in ('LANDED', 'CRASHED'):
                 break
 
             elapsed += self.dt

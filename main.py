@@ -27,4 +27,4 @@ if __name__ == "__main__":
     initial_velocity = get_initial_velocity(planet)
 
     simulator = Simulator(planet, controller=controller, initial_altitude=initial_altitude, initial_velocity=initial_velocity)
-    simulator.run(duration=60, dt=0.1)
+    simulator.run(duration=60000, dt=0.1)

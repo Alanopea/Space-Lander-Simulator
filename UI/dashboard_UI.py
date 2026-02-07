@@ -203,7 +203,7 @@ class Dashboard(QWidget):
         self.sim_worker = SimulationWorker(
             self.simulator_wrapper, 
             dt=0.1, 
-            duration=120.0,
+            duration=3600.0,
             emergency_scenario_name=emergency_scenario_name
         )
         self.sim_worker.moveToThread(self.sim_thread)

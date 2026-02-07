@@ -31,7 +31,7 @@ earth = Planet(
     air_density=1.225,
     mass=5.972e24,
     radius=6.371e6,
-    initial_altitude=1500.0,
+    initial_altitude=1200.0,
     initial_velocity=-130.0
 )
 
@@ -42,7 +42,7 @@ mars = Planet(
     air_density=0.02,
     mass=6.417e23,
     radius=3.3895e6,
-    initial_altitude=2000.0,
+    initial_altitude=1000.0,
     initial_velocity=-55.0
 )
 
@@ -53,6 +53,6 @@ moon = Planet(
     air_density=0,
     mass=7.342e22,
     radius=1.737e6,
-    initial_altitude=1200.0,
+    initial_altitude=700.0,
     initial_velocity=-35.0
 )
