@@ -38,15 +38,13 @@ class SimpleControllerExperiment:
         # ---------- INITIAL CONDITIONS ----------
         self.initial_altitude = 500.0        # m
         self.initial_velocity = -50.0        # m/s (downward)
-        self.target_velocity = -5.0          # m/s at touchdown
+        self.target_velocity = -3.0          # m/s at touchdown
         self.target_altitude = 0.0           # m
 
         self.dt = 0.05                       # s
-        self.max_time = 120.0                # s
+        self.max_time = 300.0                # s
 
-        # ---------- ACTUATOR LIMITS ----------
-        # Net vertical acceleration limits
-        self.accel_limits = (-9.81, 20.0)    # m/s²
+        self.accel_limits = (-9.81, 20.0) 
 
         # ---------- CONTROLLER CONFIGS ----------
         self.controller_configs = {
