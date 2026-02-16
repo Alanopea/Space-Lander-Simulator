@@ -157,18 +157,12 @@ class Dashboard(QWidget):
         initial_altitude = get_initial_altitude(planet)
         initial_velocity = get_initial_velocity(planet)
         
-        # Allow UI controls to override planet defaults if present
-        try:
-            if hasattr(self._controls, "initial_altitude"):
-                initial_altitude = float(self._controls.initial_altitude)
-        except Exception:
-            pass
-
-        try:
-            if hasattr(self._controls, "initial_velocity"):
-                initial_velocity = float(self._controls.initial_velocity)
-        except Exception:
-            pass
+        # Override with user-provided values from config if available
+        if isinstance(config, dict):
+            if 'initial_altitude' in config and config['initial_altitude'] is not None:
+                initial_altitude = float(config['initial_altitude'])
+            if 'initial_velocity' in config and config['initial_velocity'] is not None:
+                initial_velocity = float(config['initial_velocity'])
 
         self.simulator_wrapper = StepSimulator(
             planet,

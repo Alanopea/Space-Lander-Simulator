@@ -1,5 +1,6 @@
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QComboBox, QLabel, QPushButton, QGroupBox
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QComboBox, QLabel, QPushButton, QGroupBox, QLineEdit
 from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtGui import QIntValidator, QColor
 from core.LanderManager import LanderManager
 from core.emergencies.EmergencyScenarioManager import EmergencyScenarioManager
 
@@ -64,6 +65,34 @@ class SimulationPanel(QWidget):
 
         main_layout.addLayout(emergency_layout)
 
+        # Configuration row 3 - Initial conditions
+        initial_conditions_layout = QHBoxLayout()
+        initial_conditions_layout.setSpacing(8)
+
+        # Initial altitude input
+        initial_conditions_layout.addWidget(QLabel("Initial Altitude (m):"))
+        self.altitude_input = QLineEdit()
+        self.altitude_input.setPlaceholderText("100-9999")
+        self.altitude_input.setMaxLength(4)
+        self.altitude_input.setText("500")
+        initial_conditions_layout.addWidget(self.altitude_input, 1)
+
+        # Initial velocity input
+        initial_conditions_layout.addWidget(QLabel("Initial Velocity (m/s):"))
+        self.velocity_input = QLineEdit()
+        self.velocity_input.setPlaceholderText("0-999")
+        self.velocity_input.setMaxLength(3)
+        self.velocity_input.setText("70")
+        initial_conditions_layout.addWidget(self.velocity_input, 1)
+
+        main_layout.addLayout(initial_conditions_layout)
+
+        # Error message label
+        self.error_label = QLabel()
+        self.error_label.setStyleSheet("color: red; font-weight: bold;")
+        self.error_label.setVisible(False)
+        main_layout.addWidget(self.error_label)
+
         # Control buttons row
         button_layout = QHBoxLayout()
         button_layout.setSpacing(8)
@@ -112,9 +141,75 @@ class SimulationPanel(QWidget):
         if not self._running:
             self._update_lander_options()
 
+    def _validate_initial_conditions(self):
+        """
+        Validate initial altitude and velocity inputs.
+        Returns tuple: (is_valid, altitude, velocity)
+        """
+        self.error_label.setVisible(False)
+        
+        # Validate altitude
+        altitude_text = self.altitude_input.text().strip()
+        if not altitude_text:
+            self.error_label.setText("Error: Initial Altitude cannot be empty")
+            self.error_label.setVisible(True)
+            return False, None, None
+        
+        try:
+            altitude = float(altitude_text)
+        except ValueError:
+            self.error_label.setText("Error: Initial Altitude must be a number")
+            self.error_label.setVisible(True)
+            return False, None, None
+        
+        if altitude < 100:
+            self.error_label.setText("Error: Minimum altitude is 100m")
+            self.error_label.setVisible(True)
+            return False, None, None
+        
+        if altitude > 9999:
+            self.error_label.setText("Error: Maximum altitude is 9999m")
+            self.error_label.setVisible(True)
+            return False, None, None
+        
+        # Validate velocity
+        velocity_text = self.velocity_input.text().strip()
+        if not velocity_text:
+            self.error_label.setText("Error: Initial Velocity cannot be empty")
+            self.error_label.setVisible(True)
+            return False, None, None
+        
+        try:
+            velocity = float(velocity_text)
+        except ValueError:
+            self.error_label.setText("Error: Initial Velocity must be a number")
+            self.error_label.setVisible(True)
+            return False, None, None
+        
+        if velocity < 0:
+            self.error_label.setText("Error: Initial Velocity must be positive (will be converted to negative)")
+            self.error_label.setVisible(True)
+            return False, None, None
+        
+        if velocity > 999:
+            self.error_label.setText("Error: Maximum velocity is 999 m/s")
+            self.error_label.setVisible(True)
+            return False, None, None
+        
+        # Convert velocity to negative (for downward descent)
+        velocity = -velocity
+        
+        return True, altitude, velocity
+
     def _on_start(self):
         if self._running:
             return
+        
+        # Validate initial conditions
+        is_valid, altitude, velocity = self._validate_initial_conditions()
+        if not is_valid:
+            return
+        
         planet_name = self.planet_selector.currentText()
         # Get the actual lander name from combo box data (removes "(Moon only)" suffix)
         lander_index = self.lander_selector.currentIndex()
@@ -132,12 +227,14 @@ class SimulationPanel(QWidget):
         self.stop_btn.setEnabled(True)
         self.pause_btn.setText("Pause")
         
-        # Emit configuration dict
+        # Emit configuration dict with initial conditions
         config = {
             'planet': planet_name,
             'lander': lander_name,
             'controller': controller_kind,
-            'emergency_scenario': emergency_scenario_name
+            'emergency_scenario': emergency_scenario_name,
+            'initial_altitude': altitude,
+            'initial_velocity': velocity
         }
         self.startRequested.emit(config)
 
