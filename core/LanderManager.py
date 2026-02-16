@@ -12,7 +12,7 @@ class LanderManager:
                 "class": MoonLander,
                 "compatible_planets": ["Moon"]
             },
-            "Falcon 9 Booster": {
+            "Falcon 9": {
                 "class": Falcon9Booster,
                 "compatible_planets": ["Mars", "Earth"]
             }

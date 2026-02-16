@@ -46,7 +46,7 @@ The goal of this engineering thesis is to:
 ### Scope
 
 - **Planets**: Earth (g=9.81 m/s²), Moon (g=1.62 m/s²), Mars (g=3.71 m/s²)
-- **Lander Models**: Falcon 9 Booster, Moon Lander (with customizable configurations)
+- **Lander Models**: Falcon 9, Moon Lander (with customizable configurations)
 - **Emergency Scenarios**: Single/dual engine failures, stuck engines, response lag (1-5s delays)
 - **Performance Metrics**: Landing velocity, fuel consumption, descent time, control stability, trajectory tracking error
 
@@ -80,7 +80,7 @@ The goal of this engineering thesis is to:
 │   ├── Landers/                   # Lander model definitions
 │   │   ├── Lander.py              # Abstract base lander class
 │   │   ├── Engine.py              # Engine thrust model
-│   │   ├── Falcon9Booster.py      # Falcon 9 Booster configuration
+	│   │   ├── Falcon9Booster.py      # Falcon 9 configuration
 │   │   ├── MoonLander.py          # Apollo-style moon lander
 │   │
 │   └── emergencies/               # Emergency scenario handling
@@ -408,7 +408,7 @@ python experiments/emergency_scenario_experiment.py
 ```
 
 **Conditions**:
-- Platform: Falcon 9 Booster on Earth
+- Platform: Falcon 9 on Earth
 - Controller: MPC (best performer from Experiment 1)
 - Test all 6 emergency scenarios
 - Initial conditions: 500 m altitude, -50 m/s velocity
@@ -523,7 +523,7 @@ python app.py
 
 **Usage**:
 1. Select planet (Earth, Moon, Mars)
-2. Select lander model (Falcon 9 Booster, Moon Lander)
+2. Select lander model (Falcon 9, Moon Lander)
 3. Select control algorithm (PID, LQR, MPC)
 4. Select emergency scenario (None or specific failure)
 5. Click "Start" to begin simulation
@@ -597,7 +597,7 @@ MPC_DEFAULTS = {
 
 ### Lander Models
 
-#### Falcon 9 Booster
+#### Falcon 9
 - **Engines**: 4 Merlin engines in grid configuration
 - **Max thrust per engine**: ~700 kN
 - **Dry mass**: ~25 metric tons

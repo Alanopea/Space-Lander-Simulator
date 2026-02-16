@@ -491,7 +491,7 @@ class EmergencyScenarioExperiment:
         print("=" * 70)
         print("EMERGENCY SCENARIO IMPACT ANALYSIS EXPERIMENT")
         print("=" * 70)
-        print(f"Platform: Falcon 9 Booster | Planet: Earth | Controller: MPC")
+        print(f"Platform: Falcon 9 | Planet: Earth | Controller: MPC")
         print(f"Initial Altitude: {self.initial_altitude} m | Initial Velocity: {self.initial_velocity} m/s")
         print()
 

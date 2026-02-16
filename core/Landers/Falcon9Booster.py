@@ -34,4 +34,4 @@ class Falcon9Booster(Lander):
         self.configure_engines(positions, directions)
 
     def get_name(self):
-        return "Falcon 9 Booster"
+        return "Falcon 9"
