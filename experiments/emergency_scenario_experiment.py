@@ -191,6 +191,10 @@ class EmergencyScenarioExperiment:
         
         return summary
 
+    def _is_response_lag_scenario(self, scenario_name):
+        """Check if a scenario is a response lag scenario."""
+        return "Response Lag" in scenario_name
+
     # ============================================================
     # Plotting Functions
     # ============================================================
@@ -283,10 +287,13 @@ class EmergencyScenarioExperiment:
         plt.close(fig)
 
     def plot_velocity_profiles(self, all_results):
-        """Plot 4: Velocity vs time for all scenarios"""
+        """Plot 4: Velocity vs time for all scenarios (excluding response lag)"""
+        # Filter out response lag scenarios
+        results = [r for r in all_results if not self._is_response_lag_scenario(r["scenario"])]
+        
         fig, ax = plt.subplots(figsize=(14, 8))
         
-        for i, result in enumerate(all_results):
+        for i, result in enumerate(results):
             data = result["data"]
             outcome = "(S)" if result["landed"] else "(F)"
             label = f"{outcome} {result['scenario']}"
@@ -314,10 +321,13 @@ class EmergencyScenarioExperiment:
         plt.close(fig)
 
     def plot_altitude_profiles(self, all_results):
-        """Plot 5: Altitude vs time for all scenarios"""
+        """Plot 5: Altitude vs time for all scenarios (excluding response lag)"""
+        # Filter out response lag scenarios
+        results = [r for r in all_results if not self._is_response_lag_scenario(r["scenario"])]
+        
         fig, ax = plt.subplots(figsize=(14, 8))
         
-        for result in all_results:
+        for result in results:
             data = result["data"]
             outcome = "(S)" if result["landed"] else "(F)"
             label = f"{outcome} {result['scenario']}"
@@ -342,10 +352,13 @@ class EmergencyScenarioExperiment:
         plt.close(fig)
 
     def plot_throttle_profiles(self, all_results):
-        """Plot 6: Throttle (control effort) vs time"""
+        """Plot 6: Throttle (control effort) vs time (excluding response lag)"""
+        # Filter out response lag scenarios
+        results = [r for r in all_results if not self._is_response_lag_scenario(r["scenario"])]
+        
         fig, ax = plt.subplots(figsize=(14, 8))
         
-        for result in all_results:
+        for result in results:
             data = result["data"]
             outcome = "(S)" if result["landed"] else "(F)"
             label = f"{outcome} {result['scenario']}"
@@ -369,6 +382,106 @@ class EmergencyScenarioExperiment:
         save_dir = "experiments/emergencies_results"
         os.makedirs(save_dir, exist_ok=True)
         plt.savefig(os.path.join(save_dir, "emergency_06_throttle_profiles.png"), dpi=300)
+        plt.close(fig)
+
+    def plot_velocity_profiles_lag(self, all_results):
+        """Plot 7: Velocity vs time for response lag scenarios only (3 subplots)"""
+        # Filter only response lag scenarios
+        lag_results = [r for r in all_results if self._is_response_lag_scenario(r["scenario"])]
+        
+        # Sort by delay value
+        lag_results.sort(key=lambda x: float(x["scenario"].split('(')[1].split('s')[0]))
+        
+        fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+        
+        for idx, result in enumerate(lag_results):
+            ax = axes[idx]
+            data = result["data"]
+            outcome = "(S)" if result["landed"] else "(F)"
+            label = f"{outcome} {result['scenario']}"
+            
+            ax.plot(data["time"], data["velocity"], label=label, linewidth=2.5, color='#2980b9')
+            
+            # Add crash threshold line
+            ax.axhline(y=self.crash_threshold, color='red', linestyle=':', linewidth=2, alpha=0.7, label='Crash Threshold')
+            ax.axhline(y=0, color='black', linestyle='-', linewidth=0.5, alpha=0.5)
+            
+            ax.set_xlabel("Time (s)", fontsize=11)
+            ax.set_ylabel("Vertical Velocity (m/s)", fontsize=11)
+            ax.set_title(f"{result['scenario']}", fontsize=12, fontweight='bold')
+            ax.legend(loc='best', fontsize=9)
+            ax.grid(True, alpha=0.3)
+        
+        fig.suptitle("Response Lag Scenarios: Velocity Profiles Comparison\n(Negative = Downward)", 
+                     fontsize=14, fontweight='bold', y=1.02)
+        plt.tight_layout()
+        save_dir = "experiments/emergencies_results"
+        os.makedirs(save_dir, exist_ok=True)
+        plt.savefig(os.path.join(save_dir, "emergency_07_velocity_profiles_lag.png"), dpi=300, bbox_inches='tight')
+        plt.close(fig)
+
+    def plot_altitude_profiles_lag(self, all_results):
+        """Plot 8: Altitude vs time for response lag scenarios only"""
+        # Filter only response lag scenarios
+        results = [r for r in all_results if self._is_response_lag_scenario(r["scenario"])]
+        
+        fig, ax = plt.subplots(figsize=(14, 8))
+        
+        for result in results:
+            data = result["data"]
+            outcome = "(S)" if result["landed"] else "(F)"
+            label = f"{outcome} {result['scenario']}"
+            
+            ax.plot(data["time"], data["altitude"], label=label, linewidth=2)
+        
+        ax.axhline(y=0, color='black', linestyle='-', linewidth=1, alpha=0.5, label='Ground Level')
+        
+        ax.set_xlabel("Time (s)", fontsize=12)
+        ax.set_ylabel("Altitude (m)", fontsize=12)
+        ax.set_title("Response Lag Scenarios: Descent Trajectories", fontsize=14, fontweight='bold')
+        ax.legend(loc='best', fontsize=10)
+        ax.grid(True, alpha=0.3)
+        
+        plt.tight_layout()
+        save_dir = "experiments/emergencies_results"
+        os.makedirs(save_dir, exist_ok=True)
+        plt.savefig(os.path.join(save_dir, "emergency_08_altitude_profiles_lag.png"), dpi=300)
+        plt.close(fig)
+
+    def plot_throttle_profiles_lag(self, all_results):
+        """Plot 9: Throttle (control effort) vs time for response lag scenarios only (3 subplots)"""
+        # Filter only response lag scenarios
+        lag_results = [r for r in all_results if self._is_response_lag_scenario(r["scenario"])]
+        
+        # Sort by delay value
+        lag_results.sort(key=lambda x: float(x["scenario"].split('(')[1].split('s')[0]))
+        
+        fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+        
+        for idx, result in enumerate(lag_results):
+            ax = axes[idx]
+            data = result["data"]
+            outcome = "(S)" if result["landed"] else "(F)"
+            label = f"{outcome} {result['scenario']}"
+            
+            ax.plot(data["time"], data["throttle"], label=label, linewidth=2.5, color='#2980b9')
+            
+            ax.axhline(y=100, color='red', linestyle=':', linewidth=1.5, alpha=0.5, label='Max Throttle')
+            ax.axhline(y=0, color='black', linestyle='-', linewidth=0.5, alpha=0.5)
+            
+            ax.set_xlabel("Time (s)", fontsize=11)
+            ax.set_ylabel("Throttle (%)", fontsize=11)
+            ax.set_title(f"{result['scenario']}", fontsize=12, fontweight='bold')
+            ax.legend(loc='upper right', fontsize=9)
+            ax.grid(True, alpha=0.3)
+            ax.set_ylim([0, 110])
+        
+        fig.suptitle("Response Lag Scenarios: Control Effort Comparison (Throttle Commands)", 
+                     fontsize=14, fontweight='bold', y=1.02)
+        plt.tight_layout()
+        save_dir = "experiments/emergencies_results"
+        os.makedirs(save_dir, exist_ok=True)
+        plt.savefig(os.path.join(save_dir, "emergency_09_throttle_profiles_lag.png"), dpi=300, bbox_inches='tight')
         plt.close(fig)
 
     # ============================================================
@@ -424,6 +537,15 @@ class EmergencyScenarioExperiment:
         
         self.plot_throttle_profiles(all_results)
         print(" Plot 6: Throttle Profiles")
+        
+        self.plot_velocity_profiles_lag(all_results)
+        print(" Plot 7: Response Lag - Velocity Profiles")
+        
+        self.plot_altitude_profiles_lag(all_results)
+        print(" Plot 8: Response Lag - Altitude Profiles")
+        
+        self.plot_throttle_profiles_lag(all_results)
+        print(" Plot 9: Response Lag - Throttle Profiles")
 
         print("\n" + "=" * 70)
         print("EXPERIMENT COMPLETE!")
