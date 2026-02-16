@@ -38,8 +38,8 @@ class ThrustManager:
         # Allocate per-engine thrust magnitudes
         applied_thrusts = self.thrust_allocator.allocate(desired_force_vec, desired_torque)
         
-        # Update engine throttles
-        self._update_throttles_from_thrusts(applied_thrusts)
+        # Update engine throttles and get actual thrusts after applying emergency effects
+        applied_thrusts = self._update_throttles_from_thrusts(applied_thrusts)
         
         return applied_thrusts
     
@@ -81,7 +81,20 @@ class ThrustManager:
         return applied_thrusts
     
     def _update_throttles_from_thrusts(self, thrusts: np.ndarray):
-        """Update engine throttles based on allocated thrust values."""
+        """
+        Update engine throttles based on allocated thrust values.
+        
+        Applies emergency scenario modifications (e.g., response lag) and returns
+        the actual thrusts that result from the constrained throttles.
+        
+        Args:
+            thrusts: Desired thrust values for each engine
+            
+        Returns:
+            Actual thrust values (N) after applying any delays/constraints
+        """
+        actual_thrusts = np.zeros(len(self.lander.engines), dtype=float)
+        
         for i, engine in enumerate(self.lander.engines):
             max_thrust = float(getattr(engine, "max_thrust", 0.0))
             if getattr(engine, "enabled", True) and max_thrust > 0.0:
@@ -92,8 +105,13 @@ class ThrustManager:
                 else:
                     actual_throttle = desired_throttle
                 engine.throttle = actual_throttle
+                # Calculate the actual thrust based on delayed throttle
+                actual_thrusts[i] = actual_throttle * max_thrust
             else:
                 engine.throttle = 0.0
+                actual_thrusts[i] = 0.0
+        
+        return actual_thrusts
     
     def refresh_allocator(self):
         """Refresh allocator when engine configuration changes."""

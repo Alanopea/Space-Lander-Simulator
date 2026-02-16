@@ -58,7 +58,8 @@ class EmergencyScenarioHandler:
         Args:
             dt: Time step (s)
         """
-        self.update_time(dt)
+        # NOTE: Time is already updated in Simulator.step() before this is called
+        # Do NOT call update_time() here as it would double-increment
         
         if self.scenario_type == "engine_stuck":
             # Keep one engine at 100% throttle
@@ -90,35 +91,34 @@ class EmergencyScenarioHandler:
             Actual throttle to apply (may be delayed)
         """
         if self.scenario_type == "response_lag" and self.response_lag_delay > 0:
-            # Store command with timestamp
+            # Store command with its issue timestamp
             if engine_index not in self.throttle_history:
                 self.throttle_history[engine_index] = deque()
             
-            # Add new command with future timestamp
-            self.throttle_history[engine_index].append((self.time + self.response_lag_delay, desired_throttle))
+            # Add new command with its issue time
+            self.throttle_history[engine_index].append((self.time, desired_throttle))
             
-            # Keep only recent commands (cleanup old ones)
-            while len(self.throttle_history[engine_index]) > 100:
-                self.throttle_history[engine_index].popleft()
+            # Keep only recent commands (cleanup very old ones)
+            cutoff_time = self.time - self.response_lag_delay - 1.0  # Some buffer
+            while len(self.throttle_history[engine_index]) > 0:
+                oldest_time, _ = self.throttle_history[engine_index][0]
+                if oldest_time < cutoff_time:
+                    self.throttle_history[engine_index].popleft()
+                else:
+                    break
             
-            # Find the throttle that should be applied now
-            # Look for the most recent command that has expired
-            current_throttle = self.lander.engines[engine_index].throttle  # Default to current
-            actual_throttle = current_throttle
+            # Find the most recent command whose delay has been satisfied
+            actual_throttle = 0.0  # Default: no thrust during lag
             
-            # Process commands in order, applying the most recent expired one
-            expired_commands = []
-            for cmd_time, cmd_throttle in list(self.throttle_history[engine_index]):
-                if cmd_time <= self.time:
-                    expired_commands.append((cmd_time, cmd_throttle))
-            
-            if expired_commands:
-                # Use the most recent expired command
-                _, actual_throttle = max(expired_commands, key=lambda x: x[0])
-            
-            # If this is the very first command and delay hasn't passed, start at 0
-            if self.time < self.response_lag_delay and len(self.throttle_history[engine_index]) == 1:
-                actual_throttle = 0.0
+            # Iterate through commands from oldest to newest
+            for cmd_issue_time, cmd_throttle in list(self.throttle_history[engine_index]):
+                time_since_issue = self.time - cmd_issue_time
+                if time_since_issue >= self.response_lag_delay:
+                    # This command's delay has passed - it's a candidate
+                    # Keep updating to the most recent one
+                    actual_throttle = cmd_throttle
+                # If we haven't reached the delay yet for a command, stop checking newer ones
+                # (they definitely won't have their delays satisfied either)
             
             return actual_throttle
         
