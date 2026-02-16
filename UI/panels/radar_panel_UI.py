@@ -18,6 +18,8 @@ class RadarPanel(QWidget):
         self.plot_widget.showGrid(x=True, y=True, alpha=0.2)
         self.plot_widget.getAxis('left').setPen(pg.mkPen((0, 255, 0), width=2))
         self.plot_widget.getAxis('bottom').setPen(pg.mkPen((0, 255, 0), width=2))
+        self.plot_widget.hideAxis('left')
+        self.plot_widget.hideAxis('bottom')
         self.plot_widget.setMouseEnabled(x=False, y=False)
         self.plot_widget.setMenuEnabled(False)
         half_width, half_height = 300, 225
