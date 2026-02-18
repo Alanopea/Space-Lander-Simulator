@@ -56,10 +56,9 @@ class RadarPanel(QWidget):
             name="lander"
         )
         
-        # Add "top" label at the top of the craft
         if self.top_label:
             self.plot_widget.removeItem(self.top_label)
-        self.top_label = pg.TextItem(text="TOP", color=(0, 255, 0), anchor=(0.5, 1.0))
+        self.top_label = pg.TextItem(text="TOP", color=(0, 255, 0), anchor=(0.5, 0.7))
         self.top_label.setPos(0, half_h + 20)
         self.plot_widget.addItem(self.top_label)
 
