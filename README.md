@@ -2,7 +2,7 @@
 
 ## Abstract
 
-This engineering thesis presents a comprehensive space lander simulator developed in Python, designed to model and analyze spacecraft descent and landing across multiple planetary environments. The simulator implements a high-fidelity physics engine that accounts for translational and rotational dynamics, spatial orientation, fuel consumption, and thruster operation. Three distinct control algorithms—classical Proportional-Integral-Derivative (PID), Linear Quadratic Regulator (LQR), and Model Predictive Control (MPC)—are implemented, tested, and compared across Earth, Moon, and Mars environments. The thesis includes investigation of emergency scenarios (engine failures, response delays) and provides evidence-based recommendations for mission-critical control system selection. This project demonstrates the application of modern control theory and optimization techniques to real-world aerospace engineering challenges.
+This engineering thesis presents a comprehensive space lander simulator developed in Python, designed to model and analyze spacecraft descent and landing across multiple planetary environments. The simulator implements a high-fidelity physics engine that accounts for translational and rotational dynamics, spatial orientation, fuel consumption, and thruster operation. Three distinct control algorithms—classical Proportional-Integral-Derivative (PID), Linear Quadratic Regulator (LQR), and Model Predictive Control (MPC)—are implemented, tested, and compared across Earth, Moon, and Mars environments. The project includes investigation of emergency scenarios (engine failures, response delays). This project demonstrates the application of modern control theory and optimization techniques to real-world aerospace engineering challenges.
 
 **Keywords:** Space vehicle guidance, Control systems, PID control, Linear Quadratic Regulator, Model Predictive Control, Emergency scenario analysis, Multi-planetary simulation
 
@@ -34,7 +34,6 @@ The goal of this engineering thesis is to:
 - **Implement multiple control algorithms** (PID, LQR, MPC) with distinct design philosophies and performance characteristics
 - **Compare and evaluate** control algorithm effectiveness across metrics: landing precision, fuel efficiency, stability, and robustness
 - **Test system behavior** under nominal and emergency scenarios across three representative planetary environments
-- **Provide engineering recommendations** for mission-critical control system selection based on quantitative analysis
 
 ### Research Questions
 
@@ -462,8 +461,6 @@ python experiments/LQR_presentation.py
 
 - **Python**: 3.8 or higher
 - **OS**: Windows, macOS, or Linux
-- **RAM**: Minimum 2GB (4GB recommended)
-- **Disk Space**: ~500MB for dependencies
 
 ### Dependencies
 
@@ -720,31 +717,6 @@ class MyController(IController):
 
 ---
 
-## References
-
-### Control Theory
-- Boyd, S., El Ghaoui, L., Pérés, E., & Balakrishnan, V. (1994). *Linear Matrix Inequalities in System and Control Theory*. SIAM.
-- Goodwin, G. C., Graebe, S. F., & Salgado, M. E. (2001). *Control System Design*. Prentice Hall.
-- Åström, K. J., & Hägglund, T. (1995). *PID Controllers: Theory, Design, and Tuning*. Instrument Society of America.
-
-### Spacecraft Dynamics
-- Curtis, H. D. (2013). *Orbital Mechanics for Engineering Students* (3rd ed.). Butterworth-Heinemann.
-- Vallado, D. A., Crawford, P., Hujsak, R., & Kelso, T. S. (2006). *Revisiting Spacetrack Report #3*.
-
-### Model Predictive Control
-- Camacho, E. F., & Bordons, C. (2007). *Model Predictive Control* (2nd ed.). Springer.
-- Rawlings, J. B., Mayne, D. Q., & Diehl, M. M. (2017). *Model Predictive Control: Theory, Computation, and Design* (2nd ed.). Nob Hill Publishing.
-
----
-
 ## License
 
 This project is provided for educational and thesis purposes.
-
----
-
-## Contact & Support
-
-For questions or technical support regarding this simulator, please refer to the thesis documentation or contact the thesis advisor.
-
-**Last Updated**: February 2026
